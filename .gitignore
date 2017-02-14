@@ -27,6 +27,7 @@ hs_err_pid*
 #All IntelliJ Idea Files
 .idea/
 out/
+*.iml
 
 # User-specific stuff:
 .idea/**/workspace.xml
