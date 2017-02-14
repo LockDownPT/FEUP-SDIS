@@ -57,8 +57,6 @@ public class Client {
             sendRequest();
         }
 
-        System.out.println(packet.getData());
-
         // display response
         String received = new String(packet.getData(), 0, packet.getLength());
         System.out.println("Echoed Message: " + received);
