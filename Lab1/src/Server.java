@@ -3,7 +3,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.Hashtable;
 
 /**
  * Created by pedroc on 14/02/17.
@@ -63,11 +62,13 @@ public class Server {
             plate_number = request[1];
             owner_name = license_plates.get(plate_number);
             n_registered_licenses = Integer.toString(license_plates.size());
-            answer = n_registered_licenses + " " + plate_number+ " " + owner_name;
-
-
+            if(license_plates.size() > 0){
+                answer = n_registered_licenses + " " + plate_number+ " " + owner_name;
+            }else{
+                answer = "-1";
+            }
         }else{
-            answer = "-1";
+            answer = "ERROR";
         }
         System.out.println(answer);
         sendResponse(answer, packet);

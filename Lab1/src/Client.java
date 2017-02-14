@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.*;
 
 /**
@@ -20,20 +22,21 @@ public class Client {
         port_number=Integer.parseInt(args[1]);
         oper =args[2];
         plate_number=args[3];
+
+        validatePlate();
+
         if(oper.equals("REGISTER")){
             String owner_name=args[4];
             data="REGISTER " + plate_number + " " + owner_name;
         }else{
             data="LOOKUP " + plate_number;
         }
-
     }
 
     public void sendRequest() throws IOException {
         byte[] sbuf = data.getBytes();
         InetAddress address = InetAddress.getByName(host_name);
-        packet = new DatagramPacket(sbuf, sbuf.length,
-                address, port_number);
+        packet = new DatagramPacket(sbuf, sbuf.length, address, port_number);
         socket.send(packet);
 
     }
@@ -48,11 +51,18 @@ public class Client {
         System.out.println("Echoed Message: " + received);
     }
 
+    //verifies that the plate has the following format XX-XX-XX
+    public void validatePlate() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        while(!plate_number.matches("^(\\w{2}-?\\w{2}-?\\w{2})$")){
+            System.out.println("Plate number not valid, enter new (AA-AA-AA): ");
+            plate_number=br.readLine();
+        }
+    }
+
     public static void main(String[] args) throws IOException {
 
-        if (args.length == 4 || args.length == 5) {
-
-        }else{
+        if (!(args.length == 4 || args.length == 5)) {
             System.out.println("Usage: java Echo <hostname> <port_number> <oper> <opnd>");
             return;
         }
@@ -61,7 +71,6 @@ public class Client {
 
         client.sendRequest();
         client.getResponse();
-
 
     }
 }

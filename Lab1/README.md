@@ -1,6 +1,4 @@
-# SDIS
-
-### Lab1
+# Lab1
 
 Open two terminals inside the src folder.
 On the first terminal run:
