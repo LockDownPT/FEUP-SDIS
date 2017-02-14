@@ -15,6 +15,7 @@ public class Client {
     private String data;
     private DatagramSocket socket = new DatagramSocket();
     private DatagramPacket packet;
+    private int SOCKET_READ_TIMEOUT = 3000;
 
     Client(String [] args) throws IOException {
 
@@ -38,14 +39,26 @@ public class Client {
         InetAddress address = InetAddress.getByName(host_name);
         packet = new DatagramPacket(sbuf, sbuf.length, address, port_number);
         socket.send(packet);
-
+        getResponse();
     }
 
     public void getResponse() throws IOException {
 
         byte[] buf = new byte[256];
         packet = new DatagramPacket(buf, buf.length);
-        socket.receive(packet);
+
+        //call to receive() for this DatagramSocket will block for only this amount of time.
+        socket.setSoTimeout(SOCKET_READ_TIMEOUT);
+
+        //if the client does receive an answer in the given timemout, it resends the packet
+        try {
+            socket.receive(packet);
+        } catch (IOException e) {
+            sendRequest();
+        }
+
+        System.out.println(packet.getData());
+
         // display response
         String received = new String(packet.getData(), 0, packet.getLength());
         System.out.println("Echoed Message: " + received);
@@ -70,7 +83,6 @@ public class Client {
         Client client = new Client(args);
 
         client.sendRequest();
-        client.getResponse();
 
     }
 }
