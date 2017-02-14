@@ -13,6 +13,7 @@ public class Client {
     private String data;
     private DatagramSocket socket = new DatagramSocket();
     private DatagramPacket packet;
+
     Client(String [] args) throws IOException {
 
         host_name=args[0];
@@ -20,7 +21,6 @@ public class Client {
         oper =args[2];
         plate_number=args[3];
         if(oper.equals("REGISTER")){
-            System.out.println(oper);
             String owner_name=args[4];
             data="REGISTER " + plate_number + " " + owner_name;
         }else{
@@ -39,11 +39,12 @@ public class Client {
     }
 
     public void getResponse() throws IOException {
-        byte[] rbuf = new byte[255];
-        packet = new DatagramPacket(rbuf, rbuf.length);
+
+        byte[] buf = new byte[256];
+        packet = new DatagramPacket(buf, buf.length);
         socket.receive(packet);
         // display response
-        String received = new String(packet.getData());
+        String received = new String(packet.getData(), 0, packet.getLength());
         System.out.println("Echoed Message: " + received);
     }
 
@@ -57,11 +58,9 @@ public class Client {
         }
 
         Client client = new Client(args);
-        while (true){
-            client.sendRequest();
-            client.getResponse();
-        }
 
+        client.sendRequest();
+        client.getResponse();
 
 
     }
