@@ -52,9 +52,9 @@ public class Server {
             plate_number = request[1];
             owner_name = request[2];
 
-            //Verify if license plate is already registred
+            //Verify if license plate is already registered
             if(license_plates.get(plate_number)==null){
-                //add license plate to databse
+                //add license plate to database
                 license_plates.put(plate_number,owner_name);
                 n_registered_licenses = Integer.toString(license_plates.size());
                 answer = n_registered_licenses;
@@ -64,11 +64,16 @@ public class Server {
 
         }else if(request_type.equals("LOOKUP")){
 
-            plate_number = request[1];
-            owner_name = license_plates.get(plate_number);
-            n_registered_licenses = Integer.toString(license_plates.size());
             if(license_plates.size() > 0){
-                answer = n_registered_licenses + " " + plate_number+ " " + owner_name;
+                plate_number = request[1];
+                owner_name = license_plates.get(plate_number);
+                //If plate not found
+                if(owner_name==null){
+                    answer="NOT_FOUND";
+                }else{
+                    n_registered_licenses = Integer.toString(license_plates.size());
+                    answer = n_registered_licenses + " " + plate_number+ " " + owner_name;
+                }
             }else{
                 answer = "NOT_FOUND";
             }
