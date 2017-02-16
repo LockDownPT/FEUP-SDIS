@@ -52,10 +52,15 @@ public class Server {
             plate_number = request[1];
             owner_name = request[2];
 
-            //add license plate to databse
-            license_plates.put(plate_number,owner_name);
-            n_registered_licenses = Integer.toString(license_plates.size());
-            answer = n_registered_licenses;
+            //Verify if license plate is already registred
+            if(license_plates.get(plate_number)==null){
+                //add license plate to databse
+                license_plates.put(plate_number,owner_name);
+                n_registered_licenses = Integer.toString(license_plates.size());
+                answer = n_registered_licenses;
+            }else{
+                answer = "Plate already registered";
+            }
 
         }else if(request_type.equals("LOOKUP")){
 
