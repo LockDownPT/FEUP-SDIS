@@ -70,7 +70,7 @@ public class Server {
             if(license_plates.size() > 0){
                 answer = n_registered_licenses + " " + plate_number+ " " + owner_name;
             }else{
-                answer = "-1";
+                answer = "NOT_FOUND";
             }
         }else{
             answer = "ERROR";
