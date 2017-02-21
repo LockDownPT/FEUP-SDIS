@@ -1,0 +1,122 @@
+import java.io.IOException;
+
+/**
+ * Created by pedroc on 21/02/17.
+ */
+
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.HashMap;
+
+/**
+ * Created by pedroc on 14/02/17.
+ */
+
+
+public class MulticastServer {
+
+    private HashMap<String, String> license_plates;
+    private DatagramSocket socket;
+    private int port_number;
+
+    MulticastServer (String [] args) throws IOException {
+
+        license_plates = new HashMap<>();
+        port_number=Integer.parseInt(args[0]);
+        socket = new DatagramSocket(port_number);
+
+    }
+
+    public void answerRequest() throws IOException {
+
+        byte[] rbuf = new byte[256];
+
+        DatagramPacket packet;
+        packet = new DatagramPacket(rbuf, rbuf.length);
+        socket.receive(packet);
+
+        // display response
+        String received = new String(packet.getData());
+        System.out.println("Echoed Message: " + received);
+
+        handleRequest(received, packet);
+    }
+
+    public void handleRequest(String received,DatagramPacket packet) throws IOException {
+
+        String answer;
+        String plate_number, owner_name, n_registered_licenses;
+        //clean extra white spaces
+        String cleanRequest = received.trim();
+        //make array from string
+        String[] request = cleanRequest.split(" ");
+
+        String request_type = request[0];
+
+        if (request_type.equals("REGISTER")){
+
+            plate_number = request[1];
+            owner_name = request[2];
+
+            //Verify if license plate is already registered
+            if(license_plates.get(plate_number)==null){
+                //add license plate to database
+                license_plates.put(plate_number,owner_name);
+                n_registered_licenses = Integer.toString(license_plates.size());
+                answer = n_registered_licenses;
+            }else{
+                answer = "Plate already registered";
+            }
+
+        }else if(request_type.equals("LOOKUP")){
+
+            if(license_plates.size() > 0){
+                plate_number = request[1];
+                owner_name = license_plates.get(plate_number);
+                //If plate not found
+                if(owner_name==null){
+                    answer="NOT_FOUND";
+                }else{
+                    n_registered_licenses = Integer.toString(license_plates.size());
+                    answer = n_registered_licenses + " " + plate_number+ " " + owner_name;
+                }
+            }else{
+                answer = "NOT_FOUND";
+            }
+        }else{
+            answer = "ERROR";
+        }
+        System.out.println(answer);
+        sendResponse(answer, packet);
+    }
+
+    public void sendResponse(String answer, DatagramPacket packet) throws IOException {
+
+        byte[] buf = answer.getBytes();
+        InetAddress address = packet.getAddress();
+        int port = packet.getPort();
+        packet = new DatagramPacket(buf, buf.length, address, port);
+        socket.send(packet);
+        System.out.println("Server Response Sent!");
+    }
+
+    public static void main(String[] args) throws IOException {
+        if (args.length != 3) {
+            System.out.println("Usage: java Echo <srvc_port> <mcast_addr> <mcast_port>");
+            return;
+        }
+
+        MulticastServer server = new MulticastServer(args);
+        MulticastServerThread serverMulticast = new MulticastServerThread(args);
+        serverMulticast.run();
+
+        while(true){
+            System.out.println("Server running");
+            server.answerRequest();
+        }
+    }
+
+}

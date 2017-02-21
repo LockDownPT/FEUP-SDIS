@@ -8,21 +8,29 @@ import java.net.*;
  */
 public class Client {
 
-    private String host_name;
-    private int port_number;
+    private String mcast_addr;
+    private int mcast_port;
+    private InetAddress srvc_addr;
+    private int srvc_port;
     private String oper;
     private String plate_number;
     private String data;
     private DatagramSocket socket = new DatagramSocket();
     private DatagramPacket packet;
+    private DatagramPacket multicastPacket;
+    private MulticastSocket multicastSocket;
     private int SOCKET_READ_TIMEOUT = 3000;
 
     Client(String [] args) throws IOException {
 
-        host_name=args[0];
-        port_number=Integer.parseInt(args[1]);
+        mcast_addr =args[0];
+        mcast_port =Integer.parseInt(args[1]);
         oper =args[2];
         plate_number=args[3];
+
+        multicastSocket = new MulticastSocket(mcast_port);
+        InetAddress group = InetAddress.getByName(mcast_addr);
+        multicastSocket.joinGroup(group);
 
         validatePlate();
 
@@ -36,9 +44,9 @@ public class Client {
 
     public void sendRequest() throws IOException {
         byte[] sbuf = data.getBytes();
-        InetAddress address = InetAddress.getByName(host_name);
-        packet = new DatagramPacket(sbuf, sbuf.length, address, port_number);
+        packet = new DatagramPacket(sbuf, sbuf.length, srvc_addr, srvc_port);
         socket.send(packet);
+        System.out.println("Request Sent!");
         getResponse();
     }
 
@@ -71,14 +79,32 @@ public class Client {
         }
     }
 
+    public void getServerInfo() throws IOException {
+
+        byte[] buf = new byte[256];
+        multicastPacket = new DatagramPacket(buf, buf.length);
+
+        multicastSocket.receive(multicastPacket);
+        System.out.println("Received Server Info");
+        srvc_addr = multicastPacket.getAddress();
+
+        String receivedMulticast = new String(multicastPacket.getData(), 0, multicastPacket.getLength());
+        //clean extra white spaces
+        String cleanRequest = receivedMulticast.trim();
+        srvc_port = Integer.parseInt(cleanRequest);
+
+    }
+
     public static void main(String[] args) throws IOException {
 
         if (!(args.length == 4 || args.length == 5)) {
-            System.out.println("Usage: java Echo <hostname> <port_number> <oper> <opnd>");
+            System.out.println("Usage: java Echo <mcast_addr> <mcast_port> <oper> <opnd>");
             return;
         }
 
         Client client = new Client(args);
+
+        client.getServerInfo();
 
         client.sendRequest();
 
