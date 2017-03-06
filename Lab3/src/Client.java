@@ -1,10 +1,13 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.*;
 
+import static java.lang.Thread.sleep;
+
 /**
- * Created by pedroc on 14/02/17.
+ * Created by pedroc on 01/03/17.
  */
 public class Client {
 
@@ -13,9 +16,11 @@ public class Client {
     private String oper;
     private String plate_number;
     private String data;
-    private DatagramSocket socket = new DatagramSocket();
-    private DatagramPacket packet;
     private int SOCKET_READ_TIMEOUT = 3000;
+    private Socket clientSocket;
+    private PrintWriter out = null;
+    private BufferedReader in = null;
+
 
     Client(String [] args) throws IOException {
 
@@ -23,6 +28,8 @@ public class Client {
         port_number=Integer.parseInt(args[1]);
         oper =args[2];
         plate_number=args[3];
+
+        clientSocket = new Socket(host_name, port_number);
 
         validatePlate();
 
@@ -34,32 +41,22 @@ public class Client {
         }
     }
 
-    public void sendRequest() throws IOException {
-        byte[] sbuf = data.getBytes();
-        InetAddress address = InetAddress.getByName(host_name);
-        packet = new DatagramPacket(sbuf, sbuf.length, address, port_number);
-        socket.send(packet);
-        getResponse();
+    public void connectToServer() throws IOException {
+
+        out = new PrintWriter(clientSocket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
     }
 
-    public void getResponse() throws IOException {
+    public void sendRequest(){
 
-        byte[] buf = new byte[256];
-        packet = new DatagramPacket(buf, buf.length);
+        out.println(data);
 
-        //call to receive() for this DatagramSocket will block for only this amount of time.
-        socket.setSoTimeout(SOCKET_READ_TIMEOUT);
+    }
 
-        //if the client does receive an answer in the given timeout, it resends the packet
-        try {
-            socket.receive(packet);
-        } catch (IOException e) {
-            sendRequest();
-        }
-
-        // display response
-        String received = new String(packet.getData(), 0, packet.getLength());
-        System.out.println("Echoed Message: " + received);
+    public void receiveResponse() throws IOException {
+        String response = in.readLine();
+        System.out.println(response);
     }
 
     //verifies that the plate has the following format XX-XX-XX
@@ -80,7 +77,12 @@ public class Client {
 
         Client client = new Client(args);
 
+        client.connectToServer();
+
         client.sendRequest();
+
+        client.receiveResponse();
+
 
     }
 }

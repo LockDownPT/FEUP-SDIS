@@ -1,4 +1,11 @@
 import java.io.IOException;
+
+/**
+ * Created by pedroc on 21/02/17.
+ */
+
+
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -7,13 +14,15 @@ import java.util.HashMap;
 /**
  * Created by pedroc on 14/02/17.
  */
-public class Server {
+
+
+public class MulticastServer {
 
     private HashMap<String, String> license_plates;
     private DatagramSocket socket;
     private int port_number;
 
-    Server (String [] args) throws IOException {
+    MulticastServer (String [] args) throws IOException {
 
         license_plates = new HashMap<>();
         port_number=Integer.parseInt(args[0]);
@@ -91,17 +100,21 @@ public class Server {
         int port = packet.getPort();
         packet = new DatagramPacket(buf, buf.length, address, port);
         socket.send(packet);
+        System.out.println("Server Response Sent!");
     }
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: java Echo <port_number>");
+        if (args.length != 3) {
+            System.out.println("Usage: java Echo <srvc_port> <mcast_addr> <mcast_port>");
             return;
         }
 
-        Server server = new Server(args);
+        MulticastServer server = new MulticastServer(args);
+        MulticastServerThread serverMulticast = new MulticastServerThread(args);
+        serverMulticast.run();
 
         while(true){
+            System.out.println("Server running");
             server.answerRequest();
         }
     }
