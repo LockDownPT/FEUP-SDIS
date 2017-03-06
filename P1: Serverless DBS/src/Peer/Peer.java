@@ -1,4 +1,4 @@
-package peer;
+package Peer;
 
 public class Peer {
 
@@ -10,10 +10,11 @@ public class Peer {
     int mdr_ip;
     int mdr_port;
 
-    Peer(String [] args){
+    Peer(String [] args) {
+        peerID = Integer.parseInt(args[0]);
 
-
-
+        InitiatorPeer initiator = null;
     }
+
 
 }

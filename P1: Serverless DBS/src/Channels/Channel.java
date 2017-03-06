@@ -1,10 +1,8 @@
-package channels;
+package Channels;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.ServerSocket;
-import java.net.SocketException;
 
 /**
  * Created by pedroc on 06/03/17.
