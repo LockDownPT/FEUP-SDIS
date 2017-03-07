@@ -3,6 +3,7 @@ package TestingClientApplication;
 
 import Peer.PeerInterface;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -21,9 +22,6 @@ public class TCA {
         file=args[2];
         replicationDegree=Integer.parseInt(args[3]);
 
-        if (System.getSecurityManager() == null) {
-            System.setSecurityManager(new SecurityManager());
-        }
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
             testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
@@ -33,18 +31,15 @@ public class TCA {
 
     }
 
-    public void testBackup(){
+    public void testBackup() throws RemoteException {
         testingPeer.backup(file,replicationDegree);
     }
 
-    public void testRestore(){
+    public void testRestore() throws RemoteException {
         testingPeer.restore(file);
     }
 
-    public static void main(String[] args) {
-
-        /* Needed for Mac OS X */
-        System.setProperty("java.net.preferIPv4Stack", "true");
+    public static void main(String[] args) throws RemoteException {
 
         String protocol = args[1];
         TCA testApplication = new TCA(args);
