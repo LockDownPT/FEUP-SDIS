@@ -1,4 +1,4 @@
 To start the server run the following command:
 ```
-java -classpath ./ -Djava.rmi.server.codebase=file:./ Peer.InitiatorPeer &
+rmiregistry -J-Djava.rmi.server.codese=file:///home/pedroc/Documents/FEUP-SDIS/P1\:\ Serverless\ DBS/out/production/P1\:\ Serverless\ DBS/
 ```
