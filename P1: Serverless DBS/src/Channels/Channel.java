@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
-/**
- * Created by pedroc on 06/03/17.
- */
 public class Channel {
 
     private int port_number;

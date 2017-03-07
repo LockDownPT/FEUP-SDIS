@@ -20,9 +20,9 @@ public class InitiatorPeer extends UnicastRemoteObject implements PeerInterface{
         try {
             String name = "PeerInterface";
             PeerInterface peerInterface = new InitiatorPeer();
-            PeerInterface stub = (PeerInterface) UnicastRemoteObject.exportObject(peerInterface, 0);
+            //PeerInterface stub = (PeerInterface) UnicastRemoteObject.exportObject(peerInterface, 0);
             Registry registry = LocateRegistry.getRegistry();
-            registry.rebind(name, stub);
+            registry.bind(name, peerInterface);
             System.out.println("InitiatorPeer bound");
         } catch (Exception e) {
             System.err.println("InitiatorPeer exception:");

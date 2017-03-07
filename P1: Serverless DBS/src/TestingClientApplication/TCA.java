@@ -6,8 +6,6 @@ import Peer.PeerInterface;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-
-
 public class TCA {
 
     private String peerAccessPoint;
@@ -16,7 +14,7 @@ public class TCA {
     private int replicationDegree;
     private PeerInterface testingPeer;
 
-    public TCA(String args[]){
+    public TCA(String[] args){
 
         peerAccessPoint=args[0];
         protocol=args[1];
@@ -27,8 +25,8 @@ public class TCA {
             System.setSecurityManager(new SecurityManager());
         }
         try {
-            Registry registry = LocateRegistry.getRegistry("localhost");
-            testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
+            Registry registry = LocateRegistry.getRegistry(peerAccessPoint);
+            testingPeer = (PeerInterface) registry.lookup("PeerInterface");
         } catch (Exception e) {
             e.printStackTrace();
         }
