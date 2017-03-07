@@ -1,8 +1,11 @@
 package Peer;
 
-public class Peer {
 
-    private int peerID;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class Peer extends UnicastRemoteObject implements PeerInterface{
+
     int mc_ip;
     int mc_port;
     int mdb_ip;
@@ -10,11 +13,17 @@ public class Peer {
     int mdr_ip;
     int mdr_port;
 
-    Peer(String [] args) {
-        peerID = Integer.parseInt(args[0]);
-
-        InitiatorPeer initiator = null;
+    public Peer() throws RemoteException {
+        super();
     }
 
+    public void backup(String file, int replicationDegree){
+        System.out.println(file);
+        System.out.println(replicationDegree);
+    }
+
+    public void restore(String file){
+        System.out.println(file);
+    }
 
 }

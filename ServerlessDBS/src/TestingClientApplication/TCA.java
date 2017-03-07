@@ -25,8 +25,8 @@ public class TCA {
             System.setSecurityManager(new SecurityManager());
         }
         try {
-            Registry registry = LocateRegistry.getRegistry(peerAccessPoint);
-            testingPeer = (PeerInterface) registry.lookup("PeerInterface");
+            Registry registry = LocateRegistry.getRegistry("localhost");
+            testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,10 +43,15 @@ public class TCA {
 
     public static void main(String[] args) {
 
+        /* Needed for Mac OS X */
+        System.setProperty("java.net.preferIPv4Stack", "true");
+
         String protocol = args[1];
         TCA testApplication = new TCA(args);
         if(protocol.equals("BACKUP")){
             testApplication.testBackup();
+        } else if(protocol.equals("RESTORE")){
+            testApplication.testRestore();
         }
 
     }
