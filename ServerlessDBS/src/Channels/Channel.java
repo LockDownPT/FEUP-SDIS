@@ -16,18 +16,21 @@ public class Channel {
         mc_addr = InetAddress.getByName(address);
         port_number=port;
 
+        System.out.println(address);
+        System.out.println(port);
+
         mc_socket = new MulticastSocket(port_number);
         mc_socket.joinGroup(mc_addr);
 
     }
 
-    public byte[] receiveRequests() throws IOException {
+    public DatagramPacket receiveRequests() throws IOException {
 
         byte[] buf = new byte[1000];
         DatagramPacket request = new DatagramPacket(buf, buf.length);
         mc_socket.receive(request);
 
-        return buf;
+        return request;
     }
 
 

@@ -1,6 +1,7 @@
 package Channels;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 
 public class MDB extends Channel {
     public MDB(String address, int port) throws IOException {
@@ -13,10 +14,10 @@ public class MDB extends Channel {
         public void run(){
             try{
                 while(true){
-                    byte[] buf = new byte[1000];
-                    buf = receiveRequests();
+                    DatagramPacket packet = receiveRequests();
 
-                    System.out.println(buf);
+                    String received = new String(packet.getData());
+                    System.out.println("Echoed Message: " );
                 }
             } catch (IOException e){
                 System.out.println("Error handling peer:" + e);
