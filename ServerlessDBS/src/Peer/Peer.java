@@ -43,7 +43,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
     public void backup(String file, int replicationDegree){
 
         Backup backup = new Backup(version,peerId, file, replicationDegree, mdb_ip, mdb_port);
+        backup.readChunks();
 
+        System.out.println("Finished backup");
 
     }
 

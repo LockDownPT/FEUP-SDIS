@@ -7,7 +7,7 @@ gnome-terminal -e "bash -c \"cd $path; java Peer.InitPeer 1.0 1 224.0.0.0 4445 2
 sleep 1
 case $1 in
 	BACKUP )
-		gnome-terminal -e "bash -c \"cd $path; java TestingClientApplication.TCA 1 BACKUP pdf 3; exec bash\"" ;;
+		gnome-terminal -e "bash -c \"cd $path; java TestingClientApplication.TCA 1 BACKUP lbaw.pdf 3; exec bash\"" ;;
 	RESTORE )
 		gnome-terminal -e "bash -c \"cd $path; java TestingClientApplication.TCA 1 RESTORE pdf; exec bash\"" ;;
 esac

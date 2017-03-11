@@ -55,7 +55,7 @@ public class Backup {
         int chunkNo=0;
         try {
             long maxSizeChunk = 64 * 1024;
-            String path = ".\\TestFiles\\" + fileName;
+            String path = "./TestFiles/" + fileName;
             File file = new File(path);
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
