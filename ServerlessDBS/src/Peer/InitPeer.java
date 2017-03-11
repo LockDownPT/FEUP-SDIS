@@ -5,23 +5,17 @@ import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
 
+import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class InitPeer {
 
-    MC controlChannel;
-    MDB backupChannel;
-    MDR restoreChannel;
-    String mc_ip;
-    int mc_port;
-    String mdb_ip;
-    int mdb_port;
-    String mdr_ip;
-    int mdr_port;
 
-    public InitPeer(String[] args){
-        //backupChannel = new MDB(mdb_ip, mdb_port);
+
+    public InitPeer(String[] args) throws IOException {
+
+
     }
 
     public static void main(String[] args) {

@@ -15,6 +15,7 @@ public class Channel {
     public Channel(String address, int port) throws IOException {
         mc_addr = InetAddress.getByName(address);
         port_number=port;
+
         mc_socket = new MulticastSocket(port_number);
         mc_socket.joinGroup(mc_addr);
 
@@ -32,6 +33,7 @@ public class Channel {
 
     public void listen(){
         this.thread.start();
+
     }
 
     public void closeChannel() throws IOException {
