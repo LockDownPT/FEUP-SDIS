@@ -13,7 +13,7 @@ java TestingClientApplication.TCA 1 BACKUP lbaw.pdf 3
 
 To run multicastsnooper:
 ```
-java -jar McastSnooper.jar 224.0.0.0 4445 224.0.0.1 4446 224.0.0.2 4447
+java -jar McastSnooper.jar 224.0.0.0:4445 224.0.0.1:4446 224.0.0.2:4447
 ```
 
 		
