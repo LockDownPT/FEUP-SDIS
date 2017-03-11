@@ -21,13 +21,13 @@ public class Channel {
 
     }
 
-    public byte[] receiveRequests() throws IOException {
+    public DatagramPacket receiveRequests() throws IOException {
 
         byte[] buf = new byte[1000];
         DatagramPacket request = new DatagramPacket(buf, buf.length);
         mc_socket.receive(request);
 
-        return buf;
+        return request;
     }
 
 

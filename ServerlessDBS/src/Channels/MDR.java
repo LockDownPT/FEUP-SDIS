@@ -15,7 +15,7 @@ public class MDR extends Channel{
     public class MDRThread extends Thread{
         public void run(){
             try{
-                socket.joinGroup(mc_addr);
+                mc_socket.joinGroup(mc_addr);
 
             } catch (IOException e){
                 System.out.println("Error handling peer:" + e);
