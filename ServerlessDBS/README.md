@@ -11,4 +11,9 @@ To start the server run the following command:
 java TestingClientApplication.TCA 1 BACKUP lbaw.pdf 3
 ```
 
+To run multicastsnooper:
+```
+java -jar McastSnooper.jar
+```
+
 		
