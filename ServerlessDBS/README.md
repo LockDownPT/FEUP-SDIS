@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/21ce2aa7aae34058aee8fccb95069e39)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pedro-c/FEUP-SDIS&amp;utm_campaign=Badge_Grade)
+
 To start rmi run the following command:
 ```
 rmiregistry -J-Djava.rmi.server.codese=file:///home/pedroc/Documents/FEUP-SDIS/ServerlessDBS/out/production/ServerlessDBS/
