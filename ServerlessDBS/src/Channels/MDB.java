@@ -17,7 +17,7 @@ public class MDB extends Channel {
                     DatagramPacket packet = receiveRequests();
 
                     String received = new String(packet.getData());
-                    System.out.println("Echoed Message: " + received);
+                    System.out.println("Echoed Message: " );
                 }
             } catch (IOException e){
                 System.out.println("Error handling peer:" + e);
