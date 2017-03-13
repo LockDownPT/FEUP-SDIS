@@ -1,15 +1,17 @@
 package Channels;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.DatagramPacket;
 
 public class MDB extends Channel {
-    public MDB(String address, int port) throws IOException {
+
+
+    private String peerId;
+
+    public MDB(String address, int port, String peerId) throws IOException {
         super(address, port);
         this.thread = new MDBThread();
-
+        this.peerId = peerId;
     }
 
     public class MDBThread extends Thread{
@@ -17,7 +19,6 @@ public class MDB extends Channel {
             try{
                 while(true){
                     DatagramPacket packet = receiveRequests();
-
                     handleRequest(packet);
                 }
             } catch (IOException e){
@@ -30,8 +31,19 @@ public class MDB extends Channel {
             byte[] buffer = request.getData();
             String received = new String(request.getData());
 
-            //TODO: Get filename from received String
-            OutputStream output = new FileOutputStream(filename);
+            //TODO: optimize for getting only header from data
+            String[] requestHeader = received.split(" ");
+
+            OutputStream output = null;
+            try {
+                //Creates sub folders structure -> peerId/FileId/ChunkNo
+                File outFile = new File(peerId+"/"+requestHeader[3]+"/"+requestHeader[4]);
+                outFile.getParentFile().mkdirs();
+                outFile.createNewFile();
+                output = new FileOutputStream(peerId+"/"+requestHeader[3]+"/"+requestHeader[4]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             try {
                 output.write(buffer, 0, request.getLength());
             } catch (IOException e) {

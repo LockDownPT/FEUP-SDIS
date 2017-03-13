@@ -31,7 +31,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
         this.mdr_ip=mdr_ip;
         this.mdr_port=mdr_port;
 
-        backupChannel = new MDB(mdb_ip, mdb_port);
+        backupChannel = new MDB(mdb_ip, mdb_port, peerId);
         restoreChannel = new MDR(mdr_ip, mdr_port);
         controlChannel = new MC(mc_ip,mc_port);
 
