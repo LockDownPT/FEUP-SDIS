@@ -1,11 +1,11 @@
 package Peer;
 
-
 import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
 import Subprotocols.Backup;
 
+import java.io.File;
 import java.io.IOException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -34,6 +34,11 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
         backupChannel = new MDB(mdb_ip, mdb_port);
         restoreChannel = new MDR(mdr_ip, mdr_port);
         controlChannel = new MC(mc_ip,mc_port);
+
+
+        //Creates peer "disk" storage
+        File dir = new File(peerId);
+        dir.mkdir();
 
         backupChannel.listen();
         restoreChannel.listen();
