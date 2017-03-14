@@ -40,6 +40,7 @@ public class Backup {
             socket = new DatagramSocket();
             byte[] buf = request.getMessageBytes();
             InetAddress addr = InetAddress.getByName(mc_addr);
+            System.out.println("test buf lenght: " + buf.length);
             packet = new DatagramPacket(buf, buf.length, addr, mc_port);
             socket.send(packet);
 
@@ -63,13 +64,13 @@ public class Backup {
             int lastChunkSize = (int) (fileLength -(maxSizeChunk*numSplits));
 
             System.out.println(fileLength);
-            System.out.println(maxSizeChunk);
+            System.out.println((int)maxSizeChunk);
             System.out.println(numSplits);
             System.out.println(lastChunkSize);
 
             for (int chunkId = 1; chunkId <= numSplits; chunkId++) {
 
-                byte[] buf = new byte[(int) maxSizeChunk];
+                byte[] buf = new byte[(int)maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if(val != -1) {
                     //TODO: Save chunk to disk, and delete once "STORED" message is received

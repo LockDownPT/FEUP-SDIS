@@ -1,5 +1,7 @@
 package Channels;
 
+import Message.Message;
+
 import java.io.*;
 import java.net.DatagramPacket;
 
@@ -18,7 +20,10 @@ public class MDB extends Channel {
         public void run(){
             try{
                 while(true){
-                    DatagramPacket packet = receiveRequests();
+                    DatagramPacket packet = receiveRequests("BACKUP");
+
+                    Message request = new Message(packet);
+
                     handleRequest(packet);
                 }
             } catch (IOException e){
@@ -29,9 +34,8 @@ public class MDB extends Channel {
         public void handleRequest(DatagramPacket request){
 
             byte[] buffer = request.getData();
-            String received = new String(request.getData());
 
-            //TODO: optimize for getting only header from data
+            String received = new String(request.getData());
             String[] requestHeader = received.split(" ");
 
             OutputStream output = null;
@@ -45,7 +49,8 @@ public class MDB extends Channel {
                 e.printStackTrace();
             }
             try {
-                output.write(buffer, 0, request.getLength());
+                System.out.println(buffer.length);
+                output.write(buffer, 0, buffer.length);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

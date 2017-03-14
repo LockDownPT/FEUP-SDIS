@@ -24,9 +24,15 @@ public class Channel {
 
     }
 
-    public DatagramPacket receiveRequests() throws IOException {
+    public DatagramPacket receiveRequests(String protocol) throws IOException {
 
-        byte[] buf = new byte[1000];
+        byte[] buf;
+
+        if(protocol.equals("BACKUP")){
+            buf = new byte[64500];
+        }else{
+            buf = new byte[256];
+        }
         DatagramPacket request = new DatagramPacket(buf, buf.length);
         mc_socket.receive(request);
 

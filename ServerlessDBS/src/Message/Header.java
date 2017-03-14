@@ -23,6 +23,10 @@ public class Header {
 
     }
 
+    public Header(){
+
+    }
+
     public String getHeaderString(){
 
         headerString = messageType + space + version + space + senderId + space + fileId + space + chunkNo + space + replicationDeg + space + CRLF;
