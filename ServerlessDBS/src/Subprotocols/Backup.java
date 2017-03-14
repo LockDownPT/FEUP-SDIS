@@ -126,5 +126,25 @@ public class Backup {
         return DatatypeConverter.printHexBinary(hash);
     }
 
+    private void resendChunk(int chunkId){
+        Message request = new Message("PUTCHUNK",version, senderId, fileId, Integer.toString(chunkId), Integer.toString(replicationDegree));
+        byte[] chunk = this.backupStorage[chunkId];
+
+        request.setBody(chunk);
+
+        try {
+            socket = new DatagramSocket();
+            byte[] buf = request.getMessageBytes();
+            InetAddress addr = InetAddress.getByName(mc_addr);
+            packet = new DatagramPacket(buf, buf.length, addr, mc_port);
+            socket.send(packet);
+
+        } catch (IOException e) {
+            System.out.println("Error sending chunk nº" + chunkId);
+            e.printStackTrace();
+        }
+
+    }
+
 }
 
