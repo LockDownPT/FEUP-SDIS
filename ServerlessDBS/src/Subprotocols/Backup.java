@@ -15,7 +15,7 @@ public class Backup {
     private String senderId;
     private String mc_addr;
     private int mc_port;
-    //TODO: get fileId from file hash
+    //TODO: get fileId from file hash (hash-> fileName, senderId, modiefiedDate)
     private String fileId="fileId";
     private String version;
 
@@ -72,6 +72,7 @@ public class Backup {
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if(val != -1) {
+                    //TODO: Save chunk to disk, and delete once "STORED" message is received
                     sendChunk(buf, chunkId);
                 }
                 chunkNo++;

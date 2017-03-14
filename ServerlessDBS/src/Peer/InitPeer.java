@@ -30,7 +30,7 @@ public class InitPeer {
         try {
             peer = new Peer(version, peerId, mc_ip, mdb_ip, mdr_ip, mc_port, mdb_port, mdr_port);
             Registry registry = LocateRegistry.getRegistry();
-            registry.bind(peerId, peer);
+            registry.rebind(peerId, peer);
         } catch (Exception e) {
             e.printStackTrace();
         }

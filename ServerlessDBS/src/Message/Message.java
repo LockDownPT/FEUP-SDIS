@@ -7,7 +7,7 @@ public class Message {
     byte[] body = null;
 
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree){
-        messageHeader = new Header("BACKUP","1.0", senderId, fileId, chunkNo, replicationDegree);
+        messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
 
     }
 
@@ -27,7 +27,7 @@ public class Message {
     }
 
     public void setMessageHeader(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree) {
-        this.messageHeader = new Header("BACKUP","1.0", senderId, fileId, chunkNo, replicationDegree);
+        this.messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
     }
 
     public byte[] getBody() {
