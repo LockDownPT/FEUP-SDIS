@@ -3,8 +3,10 @@ package Subprotocols;
 
 import Message.Message;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.*;
+import java.security.MessageDigest;
 
 public class Backup {
 
@@ -18,7 +20,7 @@ public class Backup {
     //TODO: get fileId from file hash (hash-> fileName, senderId, modiefiedDate)
     private String fileId="fileId";
     private String version;
-
+    private byte[][] backupStorage;
 
 
     public Backup(String version, String senderId, String file, int replicationDegree, String addr, int port){
@@ -75,6 +77,7 @@ public class Backup {
                 if(val != -1) {
                     //TODO: Save chunk to disk, and delete once "STORED" message is received
                     sendChunk(buf, chunkId);
+                    this.backupStorage[chunkId] = buf;
                 }
                 chunkNo++;
 
@@ -85,6 +88,7 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if(val != -1) {
                     sendChunk(buf, chunkNo+1);
+                    this.backupStorage[chunkNo+1] = buf;
                 }
 
             }
@@ -95,4 +99,33 @@ public class Backup {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Returns a hexadecimal encoded SHA-256 hash for the input String.
+     * @param data
+     * @return
+     */
+    private String createHash(String data) {
+        String result = null;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(data.getBytes("UTF-8"));
+            return bytesToHex(hash); // make it printable
+        }catch(Exception ex) {
+                      ex.printStackTrace();
+        }
+        return result;
+    }
+
+        /**
+         * Use javax.xml.bind.DatatypeConverter class in JDK to convert byte array
+         * to a hexadecimal string. Note that this generates hexadecimal in upper case.
+         * @param hash
+         * @return
+         */
+    private String  bytesToHex(byte[] hash) {
+        return DatatypeConverter.printHexBinary(hash);
+    }
+
 }
+
