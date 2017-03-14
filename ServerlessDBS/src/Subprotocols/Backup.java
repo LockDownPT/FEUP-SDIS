@@ -7,6 +7,9 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.*;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
+
+import static Utilities.Constants.PUTCHUNK;
 
 public class Backup {
 
@@ -17,8 +20,7 @@ public class Backup {
     private String senderId;
     private String mc_addr;
     private int mc_port;
-    //TODO: get fileId from file hash (hash-> fileName, senderId, modiefiedDate)
-    private String fileId="fileId";
+    private String fileId;
     private String version;
     private byte[][] backupStorage;
 
@@ -30,12 +32,12 @@ public class Backup {
         this.mc_addr=addr;
         this.mc_port=port;
         this.version=version;
+        this.fileId = null;
     }
 
     public void sendChunk(byte[] chunk, int chunkNo){
 
-        //TODO: Create constants file
-        Message request = new Message("PUTCHUNK",version, senderId, fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
+        Message request = new Message(PUTCHUNK,version, senderId, fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
 
         try {
@@ -60,6 +62,11 @@ public class Backup {
             long maxSizeChunk = 64 * 1000;
             String path = "./TestFiles/" + fileName;
             File file = new File(path);
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+
+            this.fileId=  createHash(fileName+senderId + sdf.format(file.lastModified()));
+
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
             int numSplits = (int) (fileLength/maxSizeChunk);
@@ -75,7 +82,7 @@ public class Backup {
                 byte[] buf = new byte[(int)maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if(val != -1) {
-                    //TODO: Save chunk to disk, and delete once "STORED" message is received
+                    //TODO: Save chunk to memory, and delete once "STORED" message is received
                     sendChunk(buf, chunkId);
                     this.backupStorage[chunkId] = buf;
                 }
@@ -117,12 +124,12 @@ public class Backup {
         return result;
     }
 
-        /**
-         * Use javax.xml.bind.DatatypeConverter class in JDK to convert byte array
-         * to a hexadecimal string. Note that this generates hexadecimal in upper case.
-         * @param hash
-         * @return
-         */
+    /**
+      * Use javax.xml.bind.DatatypeConverter class in JDK to convert byte array
+      * to a hexadecimal string. Note that this generates hexadecimal in upper case.
+      * @param hash
+      * @return
+      */
     private String  bytesToHex(byte[] hash) {
         return DatatypeConverter.printHexBinary(hash);
     }
