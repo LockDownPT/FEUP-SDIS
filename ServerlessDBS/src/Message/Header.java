@@ -1,5 +1,8 @@
 package Message;
 
+import static Utilities.Constants.CRLF;
+import static Utilities.Constants.SPACE;
+
 public class Header {
 
     String messageType;
@@ -9,8 +12,6 @@ public class Header {
     String chunkNo;
     String replicationDeg;
     String headerString;
-    String CRLF = "\r\n";
-    String space = " ";
 
     public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo, String ReplicationDeg){
 
@@ -27,9 +28,22 @@ public class Header {
 
     }
 
+    public void constructHeader(String ...fields){
+
+        String header="";
+
+        for(String field : fields){
+            header.concat(field+SPACE);
+        }
+
+        header.concat(CRLF);
+        header.concat(CRLF);
+
+    }
+
     public String getHeaderString(){
 
-        headerString = messageType + space + version + space + senderId + space + fileId + space + chunkNo + space + replicationDeg + space + CRLF;
+        headerString = messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
 
         return headerString;
     }

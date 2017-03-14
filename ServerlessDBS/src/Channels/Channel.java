@@ -29,13 +29,12 @@ public class Channel {
         byte[] buf;
 
         if(protocol.equals("BACKUP")){
-            buf = new byte[64500];
+            buf = new byte[70000];
         }else{
             buf = new byte[256];
         }
         DatagramPacket request = new DatagramPacket(buf, buf.length);
         mc_socket.receive(request);
-
         return request;
     }
 

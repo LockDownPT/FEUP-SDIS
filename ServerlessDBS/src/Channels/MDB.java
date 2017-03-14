@@ -21,9 +21,6 @@ public class MDB extends Channel {
             try{
                 while(true){
                     DatagramPacket packet = receiveRequests("BACKUP");
-
-                    Message request = new Message(packet);
-
                     handleRequest(packet);
                 }
             } catch (IOException e){
@@ -33,24 +30,21 @@ public class MDB extends Channel {
 
         public void handleRequest(DatagramPacket request){
 
-            byte[] buffer = request.getData();
-
-            String received = new String(request.getData());
-            String[] requestHeader = received.split(" ");
+            Message message = new Message(request);
 
             OutputStream output = null;
             try {
                 //Creates sub folders structure -> peerId/FileId/ChunkNo
-                File outFile = new File(peerId+"/"+requestHeader[3]+"/"+requestHeader[4]);
+                File outFile = new File(peerId+"/"+message.getMessageHeader().getFileId()+"/"+message.getMessageHeader().getChunkNo());
                 outFile.getParentFile().mkdirs();
                 outFile.createNewFile();
-                output = new FileOutputStream(peerId+"/"+requestHeader[3]+"/"+requestHeader[4]);
+                output = new FileOutputStream(peerId+"/"+message.getMessageHeader().getFileId()+"/"+message.getMessageHeader().getChunkNo());
             } catch (IOException e) {
                 e.printStackTrace();
             }
             try {
-                System.out.println(buffer.length);
-                output.write(buffer, 0, buffer.length);
+                System.out.println(message.getBody().length);
+                output.write(message.getBody(), 0, message.getBody().length);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

@@ -9,7 +9,7 @@ import static Utilities.Constants.LF;
 public class Message {
 
     Header messageHeader;
-    byte[] body = null;
+    byte[] body;
 
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
@@ -33,14 +33,17 @@ public class Message {
 
         String header="";
         byte character;
-        while((character = (byte) message.read()) != CR){
-            header+= (char) character;
+        while((character = (byte)message.read()) != CR) {
+            header += (char) character;
         }
-        if(message.read() != LF || message.read() != CR || message.read() != LF){
+
+        if((byte)message.read() != LF || (byte)message.read() != CR || (byte)message.read() != LF){
             throw new IOException("Wrong Header Format.");
         }
 
         String[] requestHeader = header.split(" ");
+
+        byte[] bodyContent = new byte[packet.getLength()];
 
         messageHeader.setMessageType(requestHeader[0]);
 
@@ -51,7 +54,8 @@ public class Message {
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
                 messageHeader.setReplicationDeg(requestHeader[5]);
-                message.read(this.body);
+                message.read(bodyContent);
+                setBody(bodyContent);
                 break;
             case "STORED":
             case "GETCHUNK":
@@ -66,7 +70,8 @@ public class Message {
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
-                message.read(this.body);
+                message.read(bodyContent);
+                setBody(bodyContent);
                 break;
             case "DELETE":
                 messageHeader.setVersion(requestHeader[1]);

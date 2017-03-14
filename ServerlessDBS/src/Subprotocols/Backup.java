@@ -22,7 +22,6 @@ public class Backup {
     private int mc_port;
     private String fileId;
     private String version;
-    private byte[][] backupStorage;
 
 
     public Backup(String version, String senderId, String file, int replicationDegree, String addr, int port){
@@ -84,7 +83,6 @@ public class Backup {
                 if(val != -1) {
                     //TODO: Save chunk to memory, and delete once "STORED" message is received
                     sendChunk(buf, chunkId);
-                    this.backupStorage[chunkId] = buf;
                 }
                 chunkNo++;
 
@@ -95,7 +93,6 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if(val != -1) {
                     sendChunk(buf, chunkNo+1);
-                    this.backupStorage[chunkNo+1] = buf;
                 }
 
             }
