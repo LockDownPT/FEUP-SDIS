@@ -16,6 +16,11 @@ public class Message {
 
     }
 
+    //STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+    public Message(String messageType, String version, String senderId, String fileId, String chunkNo){
+        messageHeader = new Header(messageType,version, senderId, fileId, chunkNo);
+    }
+
     public Message(DatagramPacket packet){
 
         messageHeader = new Header();
