@@ -28,6 +28,7 @@ public class Mailman {
         this.peerId = peerHome;
         this.mc_addr = mc_addr;
         this.mc_port = mc_port;
+        this.message = new Message(request);
         this.thread = new ReceiverThread();
     }
     public Mailman(Message message, String peerHome, String mc_addr, int mc_port){
@@ -59,7 +60,6 @@ public class Mailman {
     }
     public class ReceiverThread extends Thread {
         public void run(){
-            message = new Message(request);
 
             //Ignores requests sent by itself
             if(message.getMessageHeader().getSenderId().equals(peerId))
@@ -115,27 +115,29 @@ public class Mailman {
 
         }
 
-        public void deliverMessage(Message message, String addr, int port){
 
-            DatagramSocket socket;
-            DatagramPacket packet;
-
-            try {
-                socket = new DatagramSocket();
-                byte[] buf = message.getMessageBytes();
-                InetAddress address = InetAddress.getByName(addr);
-                packet = new DatagramPacket(buf, buf.length, address, port);
-                socket.send(packet);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
         public void restoreMessage(){
 
         }
 
+    }
+
+    public void deliverMessage(Message message, String addr, int port){
+
+        DatagramSocket socket;
+        DatagramPacket packet;
+
+        try {
+            socket = new DatagramSocket();
+            byte[] buf = message.getMessageBytes();
+            InetAddress address = InetAddress.getByName(addr);
+            packet = new DatagramPacket(buf, buf.length, address, port);
+            socket.send(packet);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
