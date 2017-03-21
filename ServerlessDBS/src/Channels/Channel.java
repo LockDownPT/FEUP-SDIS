@@ -7,20 +7,20 @@ import java.net.MulticastSocket;
 
 public class Channel {
 
-    private int port_number;
-    InetAddress mc_addr;
+    int port_number;
+    InetAddress channel_addr;
     MulticastSocket mc_socket;
     Thread thread;
 
     public Channel(String address, int port) throws IOException {
-        mc_addr = InetAddress.getByName(address);
+        channel_addr = InetAddress.getByName(address);
         port_number=port;
 
         System.out.println(address);
         System.out.println(port);
 
         mc_socket = new MulticastSocket(port_number);
-        mc_socket.joinGroup(mc_addr);
+        mc_socket.joinGroup(channel_addr);
 
     }
 
@@ -45,6 +45,6 @@ public class Channel {
     }
 
     public void closeChannel() throws IOException {
-        mc_socket.leaveGroup(mc_addr);
+        mc_socket.leaveGroup(channel_addr);
     }
 }

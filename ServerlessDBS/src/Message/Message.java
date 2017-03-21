@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 
 import static Utilities.Constants.CR;
 import static Utilities.Constants.LF;
+import static Utilities.Constants.PUTCHUNK;
 
 public class Message {
 
@@ -14,6 +15,11 @@ public class Message {
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
 
+    }
+
+    //STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+    public Message(String messageType, String version, String senderId, String fileId, String chunkNo){
+        messageHeader = new Header(messageType,version, senderId, fileId, chunkNo);
     }
 
     public Message(DatagramPacket packet){
@@ -84,13 +90,18 @@ public class Message {
 
     }
 
-    public byte[] getMessageBytes(){
+    public byte[] getMessageBytes(String protocol){
 
         byte[] headerBytes = messageHeader.getHeaderString().getBytes();
-
-        byte[] buf = new byte[headerBytes.length + body.length];
-        System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
-        System.arraycopy(body, 0, buf, headerBytes.length, body.length);
+        byte[] buf;
+        if(protocol.equals(PUTCHUNK)){
+            buf = new byte[headerBytes.length + body.length];
+            System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
+            System.arraycopy(body, 0, buf, headerBytes.length, body.length);
+        }else{
+            buf = new byte[headerBytes.length];
+            System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
+        }
 
         return buf;
     }

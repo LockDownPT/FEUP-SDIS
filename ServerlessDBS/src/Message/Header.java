@@ -24,6 +24,16 @@ public class Header {
 
     }
 
+    public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo){
+
+        this.messageType = MessageType.trim();
+        this.version = Version.trim();
+        this.senderId = SenderId.trim();
+        this.fileId = FileId.trim();
+        this.chunkNo = ChunkNo.trim();
+
+    }
+
     public Header(){
 
     }

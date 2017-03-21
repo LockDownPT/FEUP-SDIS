@@ -13,10 +13,7 @@ public class InitPeer {
 
     public InitPeer(String[] args) throws IOException {
 
-
-
         Peer peer = null;
-
 
         this.version = args[0];
         this.peerId = args[1];

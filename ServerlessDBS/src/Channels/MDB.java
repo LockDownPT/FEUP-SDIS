@@ -1,7 +1,6 @@
 package Channels;
 
-import Message.Message;
-
+import Message.Mailman;
 import java.io.*;
 import java.net.DatagramPacket;
 
@@ -9,11 +8,15 @@ public class MDB extends Channel {
 
 
     private String peerId;
+    private String mc_addr;
+    private int mc_port;
 
-    public MDB(String address, int port, String peerId) throws IOException {
+    public MDB(String address, int port, String mc_addr, int mc_port, String peerId) throws IOException {
         super(address, port);
         this.thread = new MDBThread();
         this.peerId = peerId;
+        this.mc_addr=mc_addr;
+        this.mc_port=mc_port;
     }
 
     public class MDBThread extends Thread{
@@ -28,35 +31,14 @@ public class MDB extends Channel {
             }
         }
 
+        /***
+         * Receives backup request and saves chunks to peerId/FileId folder
+         * @param request Backup DatagramPacket with file info and chunk content
+         */
         public void handleRequest(DatagramPacket request){
-
-            Message message = new Message(request);
-
-            OutputStream output = null;
-            try {
-                //Creates sub folders structure -> peerId/FileId/ChunkNo
-                File outFile = new File(peerId+"/"+message.getMessageHeader().getFileId()+"/"+message.getMessageHeader().getChunkNo());
-                outFile.getParentFile().mkdirs();
-                outFile.createNewFile();
-                output = new FileOutputStream(peerId+"/"+message.getMessageHeader().getFileId()+"/"+message.getMessageHeader().getChunkNo());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                System.out.println(message.getBody().length);
-                output.write(message.getBody(), 0, message.getBody().length);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
+           Mailman messageHandeler = new Mailman(request, peerId, mc_addr, mc_port);
+           messageHandeler.startMailmanThread();
+        }
 
     }
-
-}
 }

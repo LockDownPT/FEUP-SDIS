@@ -2,6 +2,7 @@ package Subprotocols;
 
 
 import Message.Message;
+import Message.Mailman;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
@@ -18,18 +19,19 @@ public class Backup {
     private String fileName;
     private int replicationDegree;
     private String senderId;
-    private String mc_addr;
-    private int mc_port;
+    private String mdb_addr;
+    private int mdb_port;
     private String fileId;
     private String version;
+    private byte[][] backupStorage;
 
 
     public Backup(String version, String senderId, String file, int replicationDegree, String addr, int port){
         this.fileName = file;
         this.replicationDegree = replicationDegree;
         this.senderId = senderId;
-        this.mc_addr=addr;
-        this.mc_port=port;
+        this.mdb_addr =addr;
+        this.mdb_port =port;
         this.version=version;
         this.fileId = null;
     }
@@ -39,18 +41,8 @@ public class Backup {
         Message request = new Message(PUTCHUNK,version, senderId, fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
 
-        try {
-            socket = new DatagramSocket();
-            byte[] buf = request.getMessageBytes();
-            InetAddress addr = InetAddress.getByName(mc_addr);
-            System.out.println("test buf lenght: " + buf.length);
-            packet = new DatagramPacket(buf, buf.length, addr, mc_port);
-            socket.send(packet);
-
-        } catch (IOException e) {
-            System.out.println("Error sending chunk nº" + chunkNo);
-            e.printStackTrace();
-        }
+        Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port);
+        messageHandler.startMailmanThread();
 
 
     }
@@ -81,8 +73,9 @@ public class Backup {
                 byte[] buf = new byte[(int)maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if(val != -1) {
-                    //TODO: Save chunk to memory, and delete once "STORED" message is received
                     sendChunk(buf, chunkId);
+                    //TODO: Save chunk to memory, and delete once "STORED" message is received
+                    //this.backupStorage[chunkId] = buf;
                 }
                 chunkNo++;
 
@@ -93,6 +86,7 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if(val != -1) {
                     sendChunk(buf, chunkNo+1);
+                    //this.backupStorage[chunkId+1] = buf;
                 }
 
             }
@@ -131,7 +125,7 @@ public class Backup {
         return DatatypeConverter.printHexBinary(hash);
     }
 
-    private void resendChunk(int chunkId){
+    /*private void resendChunk(int chunkId){
         Message request = new Message("PUTCHUNK",version, senderId, fileId, Integer.toString(chunkId), Integer.toString(replicationDegree));
         byte[] chunk = this.backupStorage[chunkId];
 
@@ -140,8 +134,8 @@ public class Backup {
         try {
             socket = new DatagramSocket();
             byte[] buf = request.getMessageBytes();
-            InetAddress addr = InetAddress.getByName(mc_addr);
-            packet = new DatagramPacket(buf, buf.length, addr, mc_port);
+            InetAddress addr = InetAddress.getByName(mdb_addr);
+            packet = new DatagramPacket(buf, buf.length, addr, mdb_port);
             socket.send(packet);
 
         } catch (IOException e) {
@@ -149,7 +143,7 @@ public class Backup {
             e.printStackTrace();
         }
 
-    }
+    }*/
 
 }
 
