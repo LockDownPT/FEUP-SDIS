@@ -33,7 +33,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
         backupChannel = new MDB(mdb_ip, mdb_port, mc_ip, mc_port, peerId);
         restoreChannel = new MDR(mdr_ip, mdr_port);
-        controlChannel = new MC(mc_ip,mc_port);
+        controlChannel = new MC(mc_ip,mc_port, peerId);
 
 
         //Creates peer "disk storage"
@@ -59,7 +59,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
         //Reads chunks from a file and sends chunks to backup broadcast channel
         backup.readChunks();
 
-        System.out.println("Finished backup");
+        System.out.println("Finished Reading Chunks");
 
     }
 

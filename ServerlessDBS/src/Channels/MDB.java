@@ -1,9 +1,6 @@
 package Channels;
 
-import Message.Message;
 import Message.Mailman;
-import Subprotocols.Backup;
-
 import java.io.*;
 import java.net.DatagramPacket;
 
@@ -18,6 +15,8 @@ public class MDB extends Channel {
         super(address, port);
         this.thread = new MDBThread();
         this.peerId = peerId;
+        this.mc_addr=mc_addr;
+        this.mc_port=mc_port;
     }
 
     public class MDBThread extends Thread{

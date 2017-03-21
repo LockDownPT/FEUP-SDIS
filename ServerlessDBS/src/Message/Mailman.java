@@ -1,6 +1,7 @@
 package Message;
 
 
+import javax.sound.midi.SysexMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,12 +49,31 @@ public class Mailman {
 
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
-                    deliverMessage(message,mc_addr,mc_port);
+                    deliverMessage(message,mc_addr,mc_port, PUTCHUNK);
                     break;
+                case STORED:
+                    deliverStoredMessage();
                 default:
                     break;
             }
 
+
+        }
+
+        /**
+         * A peer that stores the chunk upon receiving the PUTCHUNK message, replies by sending
+         * on the multicast control channel (MC) a confirmation message with the following format:
+         * STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+         * after a random delay uniformly distributed between 0 and 400 ms
+         */
+        public void deliverStoredMessage(){
+            try {
+                Thread.sleep((long)(Math.random() * 400));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                deliverMessage(message, mc_addr, mc_port,STORED);
+            }
 
         }
 
@@ -64,11 +84,12 @@ public class Mailman {
             //Ignores requests sent by itself
             if(message.getMessageHeader().getSenderId().equals(peerId))
                 return;
-
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
                     storeChunk(message);
                     break;
+                case STORED:
+                        System.out.println("Received STORED");
                 default:
                     break;
             }
@@ -94,25 +115,15 @@ public class Mailman {
                 e.printStackTrace();
             } finally {
                 try {
-                    deliverStoredMessage(peerId, message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    Message stored = new Message(STORED,"1.0", peerId,message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
+                    Mailman sendStored = new Mailman(stored, peerId, mc_addr, mc_port);
+                    sendStored.startMailmanThread();
+                    //deliverStoredMessage(peerId, message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     output.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }
-
-        public void deliverStoredMessage(String senderId, String fileId, String chunkNo){
-            Message stored = new Message(STORED,"1.0", senderId,fileId,chunkNo);
-
-            try {
-                Thread.sleep((long)(Math.random() * 400));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                deliverMessage(stored, mc_addr, mc_port);
-            }
-
         }
 
 
@@ -123,14 +134,14 @@ public class Mailman {
 
     }
 
-    public void deliverMessage(Message message, String addr, int port){
+    public void deliverMessage(Message message, String addr, int port, String messageType){
 
         DatagramSocket socket;
         DatagramPacket packet;
 
         try {
             socket = new DatagramSocket();
-            byte[] buf = message.getMessageBytes();
+            byte[] buf = message.getMessageBytes(messageType);
             InetAddress address = InetAddress.getByName(addr);
             packet = new DatagramPacket(buf, buf.length, address, port);
             socket.send(packet);

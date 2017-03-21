@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 
 import static Utilities.Constants.CR;
 import static Utilities.Constants.LF;
+import static Utilities.Constants.PUTCHUNK;
 
 public class Message {
 
@@ -89,13 +90,18 @@ public class Message {
 
     }
 
-    public byte[] getMessageBytes(){
+    public byte[] getMessageBytes(String protocol){
 
         byte[] headerBytes = messageHeader.getHeaderString().getBytes();
-
-        byte[] buf = new byte[headerBytes.length + body.length];
-        System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
-        System.arraycopy(body, 0, buf, headerBytes.length, body.length);
+        byte[] buf;
+        if(protocol.equals(PUTCHUNK)){
+            buf = new byte[headerBytes.length + body.length];
+            System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
+            System.arraycopy(body, 0, buf, headerBytes.length, body.length);
+        }else{
+            buf = new byte[headerBytes.length];
+            System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
+        }
 
         return buf;
     }
