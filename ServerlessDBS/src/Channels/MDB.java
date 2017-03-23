@@ -1,6 +1,8 @@
 package Channels;
 
 import Message.Mailman;
+import Peer.Peer;
+
 import java.io.*;
 import java.net.DatagramPacket;
 
@@ -11,8 +13,8 @@ public class MDB extends Channel {
     private String mc_addr;
     private int mc_port;
 
-    public MDB(String address, int port, String mc_addr, int mc_port, String peerId) throws IOException {
-        super(address, port);
+    public MDB(String address, int port, String mc_addr, int mc_port, String peerId, Peer creator) throws IOException {
+        super(address, port, creator);
         this.thread = new MDBThread();
         this.peerId = peerId;
         this.mc_addr=mc_addr;
@@ -36,7 +38,7 @@ public class MDB extends Channel {
          * @param request Backup DatagramPacket with file info and chunk content
          */
         public void handleRequest(DatagramPacket request){
-           Mailman messageHandeler = new Mailman(request, peerId, mc_addr, mc_port);
+           Mailman messageHandeler = new Mailman(request, peerId, mc_addr, mc_port, creator);
            messageHandeler.startMailmanThread();
         }
 

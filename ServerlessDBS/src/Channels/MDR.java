@@ -1,13 +1,15 @@
 package Channels;
 
+import Peer.Peer;
+
 import java.io.IOException;
 
 /**
  * Created by pedroc on 08/03/17.
  */
 public class MDR extends Channel{
-    public MDR(String address, int port) throws IOException {
-        super(address, port);
+    public MDR(String address, int port, Peer creator) throws IOException {
+        super(address, port, creator);
         this.thread = new MDR.MDRThread();
 
     }

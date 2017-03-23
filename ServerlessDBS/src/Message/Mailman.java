@@ -1,7 +1,5 @@
 package Message;
 
-
-import javax.sound.midi.SysexMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +7,7 @@ import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import Peer.Peer;
 
 import static Utilities.Constants.PUTCHUNK;
 import static Utilities.Constants.STORED;
@@ -21,9 +20,10 @@ public class Mailman {
     private int mc_port;
     private Message message;
     Thread thread;
+    Peer creator;
 
 
-    public Mailman(DatagramPacket message, String peerHome, String mc_addr, int mc_port){
+    public Mailman(DatagramPacket message, String peerHome, String mc_addr, int mc_port, Peer creator){
 
         this.request=message;
         this.peerId = peerHome;
@@ -31,13 +31,15 @@ public class Mailman {
         this.mc_port = mc_port;
         this.message = new Message(request);
         this.thread = new ReceiverThread();
+        this.creator=creator;
     }
-    public Mailman(Message message, String peerHome, String mc_addr, int mc_port){
+    public Mailman(Message message, String peerHome, String mc_addr, int mc_port, Peer creator){
         this.message = message;
         this.peerId = peerHome;
         this. mc_addr = mc_addr;
         this.mc_port = mc_port;
         this.thread = new SenderThread();
+        this.creator=creator;
     }
 
     public void startMailmanThread(){
@@ -89,7 +91,7 @@ public class Mailman {
                     storeChunk(message);
                     break;
                 case STORED:
-                        System.out.println("Received STORED");
+                    creator.increaseReplicationDegree(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
                 default:
                     break;
             }
@@ -115,8 +117,10 @@ public class Mailman {
                 e.printStackTrace();
             } finally {
                 try {
+                    creator.addChunkToRegistry(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo(),message.getMessageHeader().getReplicationDeg());
+                    creator.increaseReplicationDegree(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
                     Message stored = new Message(STORED,"1.0", peerId,message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
-                    Mailman sendStored = new Mailman(stored, peerId, mc_addr, mc_port);
+                    Mailman sendStored = new Mailman(stored, peerId, mc_addr, mc_port, creator);
                     sendStored.startMailmanThread();
                     //deliverStoredMessage(peerId, message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     output.close();
@@ -125,8 +129,6 @@ public class Mailman {
                 }
             }
         }
-
-
 
         public void restoreMessage(){
 
@@ -150,5 +152,4 @@ public class Mailman {
             e.printStackTrace();
         }
     }
-
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import Peer.Peer;
 
 public class Channel {
 
@@ -11,8 +12,9 @@ public class Channel {
     InetAddress channel_addr;
     MulticastSocket mc_socket;
     Thread thread;
+    Peer creator;
 
-    public Channel(String address, int port) throws IOException {
+    public Channel(String address, int port, Peer creator) throws IOException {
         channel_addr = InetAddress.getByName(address);
         port_number=port;
 
@@ -21,6 +23,8 @@ public class Channel {
 
         mc_socket = new MulticastSocket(port_number);
         mc_socket.joinGroup(channel_addr);
+
+        this.creator=creator;
 
     }
 

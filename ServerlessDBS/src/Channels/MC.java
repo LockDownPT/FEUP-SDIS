@@ -4,6 +4,7 @@ import Message.Mailman;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import Peer.Peer;
 
 
 public class MC extends Channel{
@@ -11,8 +12,8 @@ public class MC extends Channel{
     private String peerId;
     String mc_address;
 
-    public MC(String address, int port, String peerId) throws IOException {
-        super(address, port);
+    public MC(String address, int port, String peerId, Peer creator) throws IOException {
+        super(address, port, creator);
         this.thread = new MC.MCThread();
         this.peerId = peerId;
         this.mc_address=address;
@@ -35,11 +36,11 @@ public class MC extends Channel{
         }
 
         /***
-         * Receives backup request and saves chunks to peerId/FileId folder
-         * @param request Backup DatagramPacket with file info and chunk content
+         * Receives control message
+         * @param request
          */
         public void handleRequest(DatagramPacket request){
-            Mailman messageHandeler = new Mailman(request, peerId, mc_address, port_number);
+            Mailman messageHandeler = new Mailman(request, peerId, mc_address, port_number, creator);
             messageHandeler.startMailmanThread();
         }
 

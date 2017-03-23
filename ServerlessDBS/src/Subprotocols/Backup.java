@@ -3,6 +3,7 @@ package Subprotocols;
 
 import Message.Message;
 import Message.Mailman;
+import Peer.Peer;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
@@ -24,9 +25,10 @@ public class Backup {
     private String fileId;
     private String version;
     private byte[][] backupStorage;
+    private Peer creator;
 
 
-    public Backup(String version, String senderId, String file, int replicationDegree, String addr, int port){
+    public Backup(String version, String senderId, String file, int replicationDegree, String addr, int port, Peer creator){
         this.fileName = file;
         this.replicationDegree = replicationDegree;
         this.senderId = senderId;
@@ -34,6 +36,7 @@ public class Backup {
         this.mdb_port =port;
         this.version=version;
         this.fileId = null;
+        this.creator=creator;
     }
 
     public void sendChunk(byte[] chunk, int chunkNo){
@@ -41,7 +44,7 @@ public class Backup {
         Message request = new Message(PUTCHUNK,version, senderId, fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
 
-        Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port);
+        Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port, creator);
         messageHandler.startMailmanThread();
 
 
