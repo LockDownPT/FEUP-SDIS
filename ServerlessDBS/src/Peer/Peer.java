@@ -4,6 +4,7 @@ import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
 import Subprotocols.Backup;
+import Subprotocols.Delete;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +80,22 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
     public void restore(String file){
         System.out.println(file);
+    }
+
+    /***
+     * Starts delete protocol
+     * @param file
+     */
+    public void delete(String file){
+
+        //Starts backup protocol
+        Delete delete = new Delete(version,peerId, file, mdb_ip, mdb_port, this);
+
+        //Reads chunks from a file and sends chunks to backup broadcast channel
+        delete.deleteChunks();
+
+        System.out.println("Finished Reading Chunks");
+
     }
 
     /**

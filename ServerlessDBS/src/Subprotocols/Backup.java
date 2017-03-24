@@ -38,11 +38,11 @@ public class Backup {
 
     public void sendChunk(byte[] chunk, int chunkNo){
 
-        Message request = new Message(PUTCHUNK,version, senderId, fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
-        request.setBody(chunk);
+            Message request = new Message(PUTCHUNK,version, senderId, fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
+            request.setBody(chunk);
 
-        Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port, creator);
-        messageHandler.startMailmanThread();
+            Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port, creator);
+            messageHandler.startMailmanThread();
 
 
 

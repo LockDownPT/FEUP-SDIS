@@ -21,6 +21,10 @@ public class Message {
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo);
     }
+    //DELETE <Version> <SenderId> <FileId> <CRLF><CRLF>
+    public Message(String messageType, String version, String senderId, String fileId){
+        messageHeader = new Header(messageType,version, senderId, fileId);
+    }
 
     public Message(DatagramPacket packet){
 

@@ -9,6 +9,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import Peer.Peer;
 
+import static Utilities.Constants.DELETE;
 import static Utilities.Constants.PUTCHUNK;
 import static Utilities.Constants.STORED;
 
@@ -55,6 +56,8 @@ public class Mailman {
                     break;
                 case STORED:
                     deliverStoredMessage();
+                case DELETE:
+                    deliverDeleteMessage();
                 default:
                     break;
             }
@@ -77,6 +80,19 @@ public class Mailman {
                 deliverMessage(message, mc_addr, mc_port,STORED);
             }
 
+        }
+
+
+        /**
+         *
+         *
+         * DEEKETE <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+         * Send 3 times
+         *
+         */
+        public void deliverDeleteMessage(){
+            for(int i =0; i < 3; i++)
+                deliverMessage(message, mc_addr, mc_port,DELETE);
         }
 
         /**
@@ -119,6 +135,9 @@ public class Mailman {
                     break;
                 case STORED:
                     creator.increaseReplicationDegree(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+                    break;
+                case DELETE:
+                    //creator.deleteChunks(message.getMessageHeader().getFileId());
                     break;
                 default:
                     break;

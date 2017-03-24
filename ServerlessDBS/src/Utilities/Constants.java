@@ -10,5 +10,6 @@ public class Constants {
 
     public static final String PUTCHUNK = "PUTCHUNK";
     public static final String STORED = "STORED";
+    public static final String DELETE = "DELETE";
 
 }
