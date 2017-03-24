@@ -4,6 +4,7 @@ import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
 import Subprotocols.Backup;
+import Subprotocols.Restore;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
     public void backup(String file, int replicationDegree){
 
         //Starts backup protocol
-        Backup backup = new Backup(version,peerId, file, replicationDegree, mdb_ip, mdb_port, this);
+        Backup backup = new Backup(file, replicationDegree,this);
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
         backup.readChunks();
@@ -77,8 +78,18 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
     }
 
+
+    //GETCHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+
+
     public void restore(String file){
-        System.out.println(file);
+
+        Restore restore = new Restore(file, this);
+
+        restore.start();
+
+        System.out.println("Restore completed");
+
     }
 
     /**
@@ -128,6 +139,70 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
         else
             return false;
 
+    }
+
+    public String getMc_ip() {
+        return mc_ip;
+    }
+
+    public void setMc_ip(String mc_ip) {
+        this.mc_ip = mc_ip;
+    }
+
+    public String getMdb_ip() {
+        return mdb_ip;
+    }
+
+    public void setMdb_ip(String mdb_ip) {
+        this.mdb_ip = mdb_ip;
+    }
+
+    public String getMdr_ip() {
+        return mdr_ip;
+    }
+
+    public void setMdr_ip(String mdr_ip) {
+        this.mdr_ip = mdr_ip;
+    }
+
+    public int getMc_port() {
+        return mc_port;
+    }
+
+    public void setMc_port(int mc_port) {
+        this.mc_port = mc_port;
+    }
+
+    public int getMdb_port() {
+        return mdb_port;
+    }
+
+    public void setMdb_port(int mdb_port) {
+        this.mdb_port = mdb_port;
+    }
+
+    public int getMdr_port() {
+        return mdr_port;
+    }
+
+    public void setMdr_port(int mdr_port) {
+        this.mdr_port = mdr_port;
+    }
+
+    public String getPeerId() {
+        return peerId;
+    }
+
+    public void setPeerId(String peerId) {
+        this.peerId = peerId;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
 }
