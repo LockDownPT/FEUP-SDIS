@@ -114,4 +114,23 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
     }
 
+    public int getReplicationDegreeOfChunk(String fileId, String chunkNo){
+
+        if(chunksReplicationDegree.get(fileId+chunkNo)!=null){
+            return Integer.parseInt(chunksReplicationDegree.get(fileId+chunkNo));
+        }else{
+            return 0;
+        }
+
+
+    }
+    public boolean hasChunk(String fileId, String ChunkNo){
+
+        if(storedChunks.get(fileId+ChunkNo)!=null)
+            return true;
+        else
+            return false;
+
+    }
+
 }

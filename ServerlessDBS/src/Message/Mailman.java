@@ -19,8 +19,8 @@ public class Mailman {
     private String mc_addr;
     private int mc_port;
     private Message message;
-    Thread thread;
-    Peer creator;
+    private Thread thread;
+    private Peer creator;
 
 
     public Mailman(DatagramPacket message, String peerHome, String mc_addr, int mc_port, Peer creator){
@@ -51,7 +51,7 @@ public class Mailman {
 
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
-                    deliverMessage(message,mc_addr,mc_port, PUTCHUNK);
+                    deliverPutchunkMessage();
                     break;
                 case STORED:
                     deliverStoredMessage();
@@ -79,6 +79,33 @@ public class Mailman {
 
         }
 
+        /**
+         * Sends chunk and the waits one second and checks if the desired replication degree
+         * has been accomplished. Otherwise it resends the chunk, a maximum of times.
+         */
+        public void deliverPutchunkMessage(){
+
+            deliverMessage(message,mc_addr,mc_port, PUTCHUNK);
+
+            int repDeg=0;
+            int numberOfTries=0;
+            while(repDeg<Integer.parseInt(message.getMessageHeader().getReplicationDeg()) && numberOfTries<5){
+                try {
+                    Thread.sleep((long)(Math.random() * 1000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    repDeg=creator.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
+                    if(repDeg<Integer.parseInt(message.getMessageHeader().getReplicationDeg()))
+                        deliverMessage(message, mc_addr, mc_port,STORED);
+                }
+                numberOfTries++;
+            }
+            if(numberOfTries==5 && repDeg<Integer.parseInt(message.getMessageHeader().getReplicationDeg())){
+                System.out.println("Replication degree not achived");
+            }
+        }
+
     }
     public class ReceiverThread extends Thread {
         public void run(){
@@ -92,6 +119,7 @@ public class Mailman {
                     break;
                 case STORED:
                     creator.increaseReplicationDegree(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+                    break;
                 default:
                     break;
             }

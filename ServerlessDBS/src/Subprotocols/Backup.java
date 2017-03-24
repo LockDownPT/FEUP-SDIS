@@ -7,7 +7,6 @@ import Peer.Peer;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
-import java.net.*;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 
@@ -15,8 +14,6 @@ import static Utilities.Constants.PUTCHUNK;
 
 public class Backup {
 
-    private DatagramSocket socket;
-    private DatagramPacket packet;
     private String fileName;
     private int replicationDegree;
     private String senderId;
@@ -46,6 +43,7 @@ public class Backup {
 
         Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port, creator);
         messageHandler.startMailmanThread();
+
 
 
     }
