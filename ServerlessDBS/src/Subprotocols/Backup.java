@@ -75,8 +75,6 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if(val != -1) {
                     sendChunk(buf, chunkId);
-                    //TODO: Save chunk to memory, and delete once "STORED" message is received
-                    //this.backupStorage[chunkId] = buf;
                 }
                 chunkNo++;
 
@@ -87,7 +85,6 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if(val != -1) {
                     sendChunk(buf, chunkNo+1);
-                    //this.backupStorage[chunkId+1] = buf;
                 }
 
             }
@@ -102,7 +99,7 @@ public class Backup {
     /**
      * Returns a hexadecimal encoded SHA-256 hash for the input String.
      * @param data
-     * @return
+     * @return string with Hash
      */
     private String createHash(String data) {
         String result = null;
@@ -120,31 +117,12 @@ public class Backup {
       * Use javax.xml.bind.DatatypeConverter class in JDK to convert byte array
       * to a hexadecimal string. Note that this generates hexadecimal in upper case.
       * @param hash
-      * @return
+      * @return string with hash in hexadecimal
       */
     private String  bytesToHex(byte[] hash) {
         return DatatypeConverter.printHexBinary(hash);
     }
 
-    /*private void resendChunk(int chunkId){
-        Message request = new Message("PUTCHUNK",version, senderId, fileId, Integer.toString(chunkId), Integer.toString(replicationDegree));
-        byte[] chunk = this.backupStorage[chunkId];
-
-        request.setBody(chunk);
-
-        try {
-            socket = new DatagramSocket();
-            byte[] buf = request.getMessageBytes();
-            InetAddress addr = InetAddress.getByName(mdb_addr);
-            packet = new DatagramPacket(buf, buf.length, addr, mdb_port);
-            socket.send(packet);
-
-        } catch (IOException e) {
-            System.out.println("Error sending chunk nº" + chunkId);
-            e.printStackTrace();
-        }
-
-    }*/
 
 }
 
