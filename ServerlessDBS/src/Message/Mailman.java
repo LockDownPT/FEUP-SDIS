@@ -98,8 +98,10 @@ public class Mailman {
                     repDeg=creator.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
                     if(repDeg<Integer.parseInt(message.getMessageHeader().getReplicationDeg()))
                         deliverMessage(message, mc_addr, mc_port,STORED);
+                    numberOfTries++;
+                    System.out.println("Tentativa: " + numberOfTries);
+                    System.out.println("RepDeg: " + repDeg);
                 }
-                numberOfTries++;
             }
             if(numberOfTries==5 && repDeg<Integer.parseInt(message.getMessageHeader().getReplicationDeg())){
                 System.out.println("Replication degree not achived");
@@ -145,12 +147,13 @@ public class Mailman {
                 e.printStackTrace();
             } finally {
                 try {
-                    creator.addChunkToRegistry(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo(),message.getMessageHeader().getReplicationDeg());
-                    creator.increaseReplicationDegree(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
-                    Message stored = new Message(STORED,"1.0", peerId,message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
-                    Mailman sendStored = new Mailman(stored, peerId, mc_addr, mc_port, creator);
-                    sendStored.startMailmanThread();
-                    //deliverStoredMessage(peerId, message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    if(!creator.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())){
+                        creator.addChunkToRegistry(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo(),message.getMessageHeader().getReplicationDeg());
+                        creator.increaseReplicationDegree(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+                        Message stored = new Message(STORED,"1.0", peerId,message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
+                        Mailman sendStored = new Mailman(stored, peerId, mc_addr, mc_port, creator);
+                        sendStored.startMailmanThread();
+                    }
                     output.close();
                 } catch (IOException e) {
                     e.printStackTrace();
