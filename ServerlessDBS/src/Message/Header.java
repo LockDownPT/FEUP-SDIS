@@ -5,15 +5,15 @@ import static Utilities.Constants.SPACE;
 
 public class Header {
 
-    String messageType;
-    String version;
-    String senderId;
-    String fileId;
-    String chunkNo;
-    String replicationDeg;
-    String headerString;
+    private String messageType;
+    private String version;
+    private String senderId;
+    private String fileId;
+    private String chunkNo;
+    private String replicationDeg;
+    private String headerString;
 
-    public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo, String ReplicationDeg){
+    public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo, String ReplicationDeg) {
 
         this.messageType = MessageType.trim();
         this.version = Version.trim();
@@ -24,7 +24,7 @@ public class Header {
 
     }
 
-    public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo){
+    public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo) {
 
         this.messageType = MessageType.trim();
         this.version = Version.trim();
@@ -34,16 +34,16 @@ public class Header {
 
     }
 
-    public Header(){
+    public Header() {
 
     }
 
-    public void constructHeader(String ...fields){
+    public void constructHeader(String... fields) {
 
-        String header="";
+        String header = "";
 
-        for(String field : fields){
-            header.concat(field+SPACE);
+        for (String field : fields) {
+            header.concat(field + SPACE);
         }
 
         header.concat(CRLF);
@@ -51,7 +51,7 @@ public class Header {
 
     }
 
-    public String getHeaderString(){
+    public String getHeaderString() {
 
         headerString = messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
 
@@ -104,5 +104,9 @@ public class Header {
 
     public void setReplicationDeg(String replicationDeg) {
         this.replicationDeg = replicationDeg;
+    }
+
+    public void setHeaderString(String headerString) {
+        this.headerString = headerString;
     }
 }

@@ -7,8 +7,8 @@ import static Utilities.Constants.*;
 
 public class Message {
 
-    Header messageHeader;
-    byte[] body;
+    private Header messageHeader;
+    private byte[] body;
 
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
@@ -120,5 +120,7 @@ public class Message {
     }
 
 
-
+    public void setMessageHeader(Header messageHeader) {
+        this.messageHeader = messageHeader;
+    }
 }

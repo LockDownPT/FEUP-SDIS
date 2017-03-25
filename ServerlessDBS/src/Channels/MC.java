@@ -1,41 +1,38 @@
 package Channels;
 
 import Message.Mailman;
+import Peer.Peer;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import Peer.Peer;
 
 
-public class MC extends Channel{
+public class MC extends Channel {
 
-    public MC(String address, int port, String peerId, Peer peer) throws IOException {
+    public MC(String address, int port, Peer peer) throws IOException {
         super(address, port, peer);
-        this.thread = new MC.MCThread();
+        setThread(new MC.MCThread());
     }
 
-    public class MCThread extends Thread{
-        public void run(){
-            try{
-                while(true){
+    public class MCThread extends Thread {
+        public void run() {
+            try {
+                while (true) {
                     DatagramPacket packet = receiveRequests("");
                     handleRequest(packet);
                 }
 
-            } catch (IOException e){
+            } catch (IOException e) {
                 System.out.println("Error handling peer:" + e);
-            }finally {
-
             }
-
         }
 
         /***
          * Receives control message
          * @param request
          */
-        public void handleRequest(DatagramPacket request){
-            Mailman messageHandeler = new Mailman(request, peer);
+        public void handleRequest(DatagramPacket request) {
+            Mailman messageHandeler = new Mailman(request, getPeer());
             messageHandeler.startMailmanThread();
         }
 

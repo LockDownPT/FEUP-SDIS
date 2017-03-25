@@ -1,11 +1,15 @@
 package Subprotocols;
 
 
-import Message.Message;
 import Message.Mailman;
+import Message.Message;
 import Peer.Peer;
-import java.io.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
+
 import static Utilities.Constants.PUTCHUNK;
 import static Utilities.Utilities.createHash;
 
@@ -17,27 +21,26 @@ public class Backup {
     private Peer creator;
 
 
-    public Backup(String file, int replicationDegree, Peer creator){
+    public Backup(String file, int replicationDegree, Peer creator) {
         this.fileName = file;
         this.replicationDegree = replicationDegree;
         this.fileId = null;
-        this.creator=creator;
+        this.creator = creator;
     }
 
-    public void sendChunk(byte[] chunk, int chunkNo){
+    public void sendChunk(byte[] chunk, int chunkNo) {
 
-        Message request = new Message(PUTCHUNK,creator.getVersion(), creator.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
+        Message request = new Message(PUTCHUNK, creator.getVersion(), creator.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
 
         Mailman messageHandler = new Mailman(request, creator);
         messageHandler.startMailmanThread();
 
 
-
     }
 
     public void readChunks() {
-        int chunkNo=0;
+        int chunkNo = 0;
         try {
             long maxSizeChunk = 64 * 1000;
             String path = "./TestFiles/" + fileName;
@@ -49,30 +52,30 @@ public class Backup {
 
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            int numSplits = (int) (fileLength/maxSizeChunk);
-            int lastChunkSize = (int) (fileLength -(maxSizeChunk*numSplits));
+            int numSplits = (int) (fileLength / maxSizeChunk);
+            int lastChunkSize = (int) (fileLength - (maxSizeChunk * numSplits));
 
             System.out.println(fileLength);
-            System.out.println((int)maxSizeChunk);
+            System.out.println((int) maxSizeChunk);
             System.out.println(numSplits);
             System.out.println(lastChunkSize);
 
             for (int chunkId = 1; chunkId <= numSplits; chunkId++) {
 
-                byte[] buf = new byte[(int)maxSizeChunk];
+                byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
-                if(val != -1) {
+                if (val != -1) {
                     sendChunk(buf, chunkId);
                 }
                 chunkNo++;
 
             }
-            if(lastChunkSize >= 0) {
+            if (lastChunkSize >= 0) {
 
-                byte[] buf = new byte[(int) (long)lastChunkSize];
+                byte[] buf = new byte[(int) (long) lastChunkSize];
                 int val = fileRaf.read(buf);
-                if(val != -1) {
-                    sendChunk(buf, chunkNo+1);
+                if (val != -1) {
+                    sendChunk(buf, chunkNo + 1);
                 }
 
             }

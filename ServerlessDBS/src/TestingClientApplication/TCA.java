@@ -15,13 +15,13 @@ public class TCA {
     private int replicationDegree;
     private PeerInterface testingPeer;
 
-    public TCA(String[] args){
+    public TCA(String[] args) {
 
-        peerAccessPoint=args[0];
-        protocol=args[1];
-        file=args[2];
-        if(protocol.equals("BACKUP"))
-            replicationDegree=Integer.parseInt(args[3]);
+        peerAccessPoint = args[0];
+        protocol = args[1];
+        file = args[2];
+        if (protocol.equals("BACKUP"))
+            replicationDegree = Integer.parseInt(args[3]);
 
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
@@ -32,24 +32,24 @@ public class TCA {
 
     }
 
-    public void testBackup() throws RemoteException {
-        testingPeer.backup(file,replicationDegree);
-    }
-
-    public void testRestore() throws RemoteException {
-        testingPeer.restore(file);
-    }
-
     public static void main(String[] args) throws RemoteException {
 
         String protocol = args[1];
         TCA testApplication = new TCA(args);
-        if(protocol.equals("BACKUP")){
+        if (protocol.equals("BACKUP")) {
             testApplication.testBackup();
-        } else if(protocol.equals("RESTORE")){
+        } else if (protocol.equals("RESTORE")) {
             testApplication.testRestore();
         }
 
+    }
+
+    public void testBackup() throws RemoteException {
+        testingPeer.backup(file, replicationDegree);
+    }
+
+    public void testRestore() throws RemoteException {
+        testingPeer.restore(file);
     }
 
 }
