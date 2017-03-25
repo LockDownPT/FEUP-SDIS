@@ -71,7 +71,7 @@ public class Restore {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("number of chunks: "+this.numberOfChunks);
+        System.out.println("Number of chunks: "+this.numberOfChunks);
     }
 
     public void requestChunks(){
