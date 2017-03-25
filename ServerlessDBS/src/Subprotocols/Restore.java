@@ -12,6 +12,7 @@ import Message.Mailman;
 
 import static Utilities.Constants.GETCHUNK;
 import static Utilities.Utilities.createHash;
+import static java.lang.Thread.sleep;
 
 
 public class Restore {
@@ -36,12 +37,21 @@ public class Restore {
 
     public void start(){
 
+        System.out.println("Gathering file info");
         getFileInfo();
+        System.out.print("Requesting chunks");
         requestChunks();
-        while(restoredChunks<numberOfChunks){
-            //getting chunks
-        }
+        do{
+            try {
+                sleep(500);
+                System.out.print(".");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }while(restoredChunks<numberOfChunks);
+        System.out.println("Constructing File");
         constructFile();
+        System.out.println("Finished Restore");
 
     }
 
@@ -56,19 +66,19 @@ public class Restore {
         try {
             fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            this.numberOfChunks = (int) (fileLength/maxSizeChunk);
+            this.numberOfChunks = (int) (fileLength/maxSizeChunk)+1;
             this.lastChunkSize = (int) (fileLength -(maxSizeChunk*this.numberOfChunks));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("number of chunks: "+this.numberOfChunks);
     }
 
     public void requestChunks(){
 
         int chunkNo=1;
 
-        //TODO: finish this part and add GETCHUNK method to mailman
-        while(chunkNo<numberOfChunks){
+        while(chunkNo<=numberOfChunks){
             Message request = new Message(GETCHUNK,peer.getVersion(), peer.getPeerId(), this.fileId, Integer.toString(chunkNo));
 
             Mailman messageHandler = new Mailman(request, peer);
@@ -115,6 +125,7 @@ public class Restore {
         if(chunks.get(chunkNo)==null){
             chunks.put(chunkNo,chunk);
             restoredChunks++;
+            System.out.println("Received chunk: " + chunkNo);
         }
     }
 }

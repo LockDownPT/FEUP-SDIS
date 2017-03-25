@@ -20,7 +20,8 @@ public class TCA {
         peerAccessPoint=args[0];
         protocol=args[1];
         file=args[2];
-        replicationDegree=Integer.parseInt(args[3]);
+        if(protocol.equals("BACKUP"))
+            replicationDegree=Integer.parseInt(args[3]);
 
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");

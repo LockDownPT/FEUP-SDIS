@@ -121,13 +121,13 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
         if(currentReplicationDegree==null){
             chunksReplicationDegree.put(fileId,"1");
-            System.out.println("Replication degree of: "+fileId);
-            System.out.println("1");
+            //System.out.println("Replication degree of: "+fileId);
+            //System.out.println("1");
         }else{
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(fileId,String.valueOf(temp+1));
-            System.out.println("Replication degree of: "+fileId);
-            System.out.println(String.valueOf(temp+1));
+            //System.out.println("Replication degree of: "+fileId);
+            //System.out.println(String.valueOf(temp+1));
         }
 
     }
@@ -170,9 +170,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
     public boolean hasChunkBeenSent(String fileId, String chunkNo){
         if(sentChunks.get(fileId+chunkNo) == null)
-            return true;
-        else
             return false;
+        else
+            return true;
 
     }
 

@@ -37,7 +37,7 @@ public class Mailman {
 
     public class SenderThread extends Thread {
         public void run() {
-
+            System.out.println("Sended request:" + message.getMessageHeader().getMessageType());
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
                     deliverPutchunkMessage();
@@ -121,7 +121,7 @@ public class Mailman {
     }
     public class ReceiverThread extends Thread {
         public void run(){
-
+            System.out.println("Received request:" + message.getMessageHeader().getMessageType());
             //Ignores requests sent by itself
             if(message.getMessageHeader().getSenderId().equals(peer.getPeerId()))
                 return;
@@ -189,6 +189,7 @@ public class Mailman {
                         chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo()));
                         Mailman sendChunk = new Mailman(chunk, peer);
                         sendChunk.startMailmanThread();
+                        System.out.println("Sent CHUNK");
                     }
                 }
             }
