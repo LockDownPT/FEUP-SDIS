@@ -12,9 +12,9 @@ public class Channel {
     InetAddress channel_addr;
     MulticastSocket mc_socket;
     Thread thread;
-    Peer creator;
+    Peer peer;
 
-    public Channel(String address, int port, Peer creator) throws IOException {
+    public Channel(String address, int port, Peer peer) throws IOException {
         channel_addr = InetAddress.getByName(address);
         port_number=port;
 
@@ -24,7 +24,7 @@ public class Channel {
         mc_socket = new MulticastSocket(port_number);
         mc_socket.joinGroup(channel_addr);
 
-        this.creator=creator;
+        this.peer=peer;
 
     }
 
@@ -32,7 +32,7 @@ public class Channel {
 
         byte[] buf;
 
-        if(protocol.equals("BACKUP")){
+        if(protocol.equals("BACKUP") || protocol.equals("RESTORE")){
             buf = new byte[70000];
         }else{
             buf = new byte[256];

@@ -9,14 +9,9 @@ import Peer.Peer;
 
 public class MC extends Channel{
 
-    private String peerId;
-    String mc_address;
-
-    public MC(String address, int port, String peerId, Peer creator) throws IOException {
-        super(address, port, creator);
+    public MC(String address, int port, String peerId, Peer peer) throws IOException {
+        super(address, port, peer);
         this.thread = new MC.MCThread();
-        this.peerId = peerId;
-        this.mc_address=address;
     }
 
     public class MCThread extends Thread{
@@ -40,7 +35,7 @@ public class MC extends Channel{
          * @param request
          */
         public void handleRequest(DatagramPacket request){
-            Mailman messageHandeler = new Mailman(request, peerId, mc_address, port_number, creator);
+            Mailman messageHandeler = new Mailman(request, peer);
             messageHandeler.startMailmanThread();
         }
 

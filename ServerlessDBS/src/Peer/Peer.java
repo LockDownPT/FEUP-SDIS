@@ -8,6 +8,9 @@ import Subprotocols.Restore;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,20 +21,27 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
     private MC controlChannel;
     private MDB backupChannel;
     private MDR restoreChannel;
+    private Restore restoreProtocol = null;
+    private Backup backupProtocol = null;
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
     private String version;
     /**
      * String is a par of fileId+chunkNo
-     * int holds the desired replication degree
+     * String holds the desired replication degree
      */
     private Map<String,String> storedChunks = new ConcurrentHashMap<>();
     /**
      * String is a par of fileId+chunkNo
-     * int holds the current replication degree
+     * String holds the current replication degree
      */
     private Map<String,String> chunksReplicationDegree = new ConcurrentHashMap<>();
+    /**
+     * String is a par of fileId+chunkNo
+     * Boolean holds the current replication degree
+     */
+    private Map<String,Boolean> sentChunks = new ConcurrentHashMap<>();
 
 
     public Peer(String version, String peerId, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
@@ -46,7 +56,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
         this.mdr_ip=mdr_ip;
         this.mdr_port=mdr_port;
 
-        backupChannel = new MDB(mdb_ip, mdb_port, mc_ip, mc_port, peerId, this);
+        backupChannel = new MDB(mdb_ip, mdb_port, this);
         restoreChannel = new MDR(mdr_ip, mdr_port, this);
         controlChannel = new MC(mc_ip,mc_port, peerId, this);
 
@@ -63,30 +73,30 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
     /***
      * Starts backup protocol
-     * @param file
-     * @param replicationDegree
+     * @param file file to backup
+     * @param replicationDegree  desired replication degree of the file
      */
     public void backup(String file, int replicationDegree){
 
         //Starts backup protocol
-        Backup backup = new Backup(file, replicationDegree,this);
+        backupProtocol = new Backup(file, replicationDegree,this);
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
-        backup.readChunks();
+        backupProtocol.readChunks();
 
         System.out.println("Finished Reading Chunks");
 
     }
 
-
-    //GETCHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
-
-
+    /**
+     * Starts restore protocol
+     * @param file file to be restored
+     */
     public void restore(String file){
 
-        Restore restore = new Restore(file, this);
+        restoreProtocol = new Restore(file, this);
 
-        restore.start();
+        restoreProtocol.start();
 
         System.out.println("Restore completed");
 
@@ -132,13 +142,46 @@ public class Peer extends UnicastRemoteObject implements PeerInterface{
 
 
     }
-    public boolean hasChunk(String fileId, String ChunkNo){
+    public boolean hasChunk(String fileId, String chunkNo){
 
-        if(storedChunks.get(fileId+ChunkNo)!=null)
+        if(storedChunks.get(fileId+chunkNo)!=null)
             return true;
         else
             return false;
 
+    }
+
+    public byte[] getChunk(String fileId, String chunkNo){
+        byte[] chunk=null;
+
+        Path path = Paths.get(peerId+"/"+fileId+"/"+chunkNo);
+        try {
+            chunk = Files.readAllBytes(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return chunk;
+    }
+
+    public void addSentChunkInfo(String fileId, String chunkNo){
+        sentChunks.put(fileId+chunkNo,true);
+    }
+
+    public boolean hasChunkBeenSent(String fileId, String chunkNo){
+        if(sentChunks.get(fileId+chunkNo) == null)
+            return true;
+        else
+            return false;
+
+    }
+
+    public Restore getRestoreProtocol() {
+        return restoreProtocol;
+    }
+
+    public Backup getBackupProtocol() {
+        return backupProtocol;
     }
 
     public String getMc_ip() {

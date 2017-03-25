@@ -26,6 +26,7 @@ public class Restore {
     private int numberOfChunks=0;
     private int lastChunkSize=0;
     private int restoredChunks=0;
+    private String fileId;
 
     public Restore(String file,Peer peer){
 
@@ -35,19 +36,22 @@ public class Restore {
 
     public void start(){
 
-        getChunks();
+        getFileInfo();
+        requestChunks();
+        while(restoredChunks<numberOfChunks){
+            //getting chunks
+        }
         constructFile();
 
     }
 
-    public void getChunks(){
-
+    public void getFileInfo(){
         long maxSizeChunk = 64 * 1000;
         String path = "./TestFiles/" + fileName;
         File file = new File(path);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        String fileId = createHash(fileName + sdf.format(file.lastModified()));
+        this.fileId = createHash(fileName + sdf.format(file.lastModified()));
         RandomAccessFile fileRaf = null;
         try {
             fileRaf = new RandomAccessFile(file, "r");
@@ -57,14 +61,17 @@ public class Restore {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void requestChunks(){
 
         int chunkNo=1;
 
         //TODO: finish this part and add GETCHUNK method to mailman
         while(chunkNo<numberOfChunks){
-            Message request = new Message(GETCHUNK,peer.getVersion(), peer.getPeerId(), fileName, Integer.toString(chunkNo));
+            Message request = new Message(GETCHUNK,peer.getVersion(), peer.getPeerId(), this.fileId, Integer.toString(chunkNo));
 
-            Mailman messageHandler = new Mailman(request,peer.getPeerId(),peer.getMdb_ip(),peer.getMdb_port(), peer);
+            Mailman messageHandler = new Mailman(request, peer);
             messageHandler.startMailmanThread();
 
             chunkNo++;
@@ -101,6 +108,13 @@ public class Restore {
                 e.printStackTrace();
 
             }
+        }
+    }
+
+    public void storeChunk(String chunkNo, byte[] chunk){
+        if(chunks.get(chunkNo)==null){
+            chunks.put(chunkNo,chunk);
+            restoredChunks++;
         }
     }
 }

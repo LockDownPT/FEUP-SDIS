@@ -3,9 +3,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
-import static Utilities.Constants.CR;
-import static Utilities.Constants.LF;
-import static Utilities.Constants.PUTCHUNK;
+import static Utilities.Constants.*;
 
 public class Message {
 
@@ -17,7 +15,6 @@ public class Message {
 
     }
 
-    //STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo);
     }
@@ -94,7 +91,7 @@ public class Message {
 
         byte[] headerBytes = messageHeader.getHeaderString().getBytes();
         byte[] buf;
-        if(protocol.equals(PUTCHUNK)){
+        if(protocol.equals(PUTCHUNK) || protocol.equals(CHUNK)){
             buf = new byte[headerBytes.length + body.length];
             System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
             System.arraycopy(body, 0, buf, headerBytes.length, body.length);

@@ -8,17 +8,9 @@ import java.net.DatagramPacket;
 
 public class MDB extends Channel {
 
-
-    private String peerId;
-    private String mc_addr;
-    private int mc_port;
-
-    public MDB(String address, int port, String mc_addr, int mc_port, String peerId, Peer creator) throws IOException {
+    public MDB(String address, int port, Peer creator) throws IOException {
         super(address, port, creator);
         this.thread = new MDBThread();
-        this.peerId = peerId;
-        this.mc_addr=mc_addr;
-        this.mc_port=mc_port;
     }
 
     public class MDBThread extends Thread{
@@ -38,7 +30,7 @@ public class MDB extends Channel {
          * @param request Backup DatagramPacket with file info and chunk content
          */
         public void handleRequest(DatagramPacket request){
-           Mailman messageHandeler = new Mailman(request, peerId, mc_addr, mc_port, creator);
+           Mailman messageHandeler = new Mailman(request, peer);
            messageHandeler.startMailmanThread();
         }
 

@@ -29,7 +29,7 @@ public class Backup {
         Message request = new Message(PUTCHUNK,creator.getVersion(), creator.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
 
-        Mailman messageHandler = new Mailman(request,creator.getPeerId(),creator.getMdb_ip(),creator.getMdb_port(), creator);
+        Mailman messageHandler = new Mailman(request, creator);
         messageHandler.startMailmanThread();
 
 
