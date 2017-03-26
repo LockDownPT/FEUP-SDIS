@@ -17,7 +17,9 @@ class TCA {
 
         String peerAccessPoint = args[0];
         String protocol = args[1];
-        file = args[2];
+        if(!protocol.equals("STATE")){
+            file = args[2];
+        }
         if (protocol.equals("BACKUP"))
             replicationDegree = Integer.parseInt(args[3]);
 
@@ -38,6 +40,10 @@ class TCA {
             testApplication.testBackup();
         } else if (protocol.equals("RESTORE")) {
             testApplication.testRestore();
+        } else if (protocol.equals("STATE")){
+            testApplication.state();
+        } else {
+            System.out.println("WRONG PROTOCOL");
         }
 
     }
@@ -48,6 +54,11 @@ class TCA {
 
     private void testRestore() throws RemoteException {
         testingPeer.restore(file);
+    }
+
+    private void state() throws RemoteException
+    {
+        testingPeer.state();
     }
 
 }

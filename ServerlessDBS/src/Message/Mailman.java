@@ -193,11 +193,11 @@ public class Mailman {
                 }
                 try {
                     output.write(message.getBody(), 0, message.getBody().length);
+                    peer.setUsedSpace(peer.getStorageSpace()+message.getBody().length);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
                     try {
-
                         peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
                         peer.increaseReplicationDegree(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
                         Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());

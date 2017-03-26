@@ -14,20 +14,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
-    private Backup backupProtocol = null;
+    private Map<String, Backup>backupProtocol = new ConcurrentHashMap<>();
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
     private String version;
+    private long storageSpace=0;
+    private long usedSpace=0;
     /**
      * String is a par of fileId+chunkNo
      * String holds the desired replication degree
@@ -46,7 +46,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     private Map<String, Boolean> sentChunks = new ConcurrentHashMap<>();
 
-    
+
     public Peer(String version, String peerId, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
         super();
 
@@ -84,11 +84,13 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     public void backup(String file, int replicationDegree) {
 
-        //Starts backup protocol
-        backupProtocol = new Backup(file, replicationDegree, this);
+        Backup backup = new Backup(file, replicationDegree, this);
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
-        backupProtocol.readChunks();
+        backup.readChunks();
+
+        //Starts backup protocol
+        backupProtocol.put(backup.getFileId(),backup);
 
         System.out.println("Finished Reading Chunks");
 
@@ -107,6 +109,63 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
         System.out.println("Restore completed");
 
+    }
+
+    /**
+     * This operation allows to observe the service state. In response to such a request, the peer shall send to the client the following information:
+        For each file whose backup it has initiated:
+            The file pathname ✓
+            The backup service id of the file ✓
+            The desired replication degree ✓
+            For each chunk of the file:
+                Its id
+                Its perceived replication degree
+        For each chunk it stores:
+            Its id  ✓
+            Its size (in KBytes)
+            Its perceived replication degree ✓
+        The peer's storage capacity, i.e. the maximum amount of disk space that can be used to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
+
+     */
+    public void state(){
+
+        String[] state= new String[1024];
+
+        int i=0;
+        for (Backup b : backupProtocol.values()) {
+            i++;
+            state[i] = "File pathname: " + b.getCreator().peerId +"/"+b.getFileName();
+            i++;
+            state[i] = "Backup service id: " + b.getCreator().peerId;
+            i++;
+            state[i] = "Desired Replication degree: " + b.getReplicationDegree();
+            for (Map.Entry<String, String> entry : chunksReplicationDegree.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if(key.equals(b.getFileId())){
+                    i++;
+                    state[i] = "Chunk id: " + key;
+                    i++;
+                    state[i] = "Perceived replication degree: " + value;
+                }
+            }
+        }
+        for (Map.Entry<String, String> entry : storedChunks.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            i++;
+            state[i] = "Stored chunk: " + key;
+            i++;
+            state[i] = "Perceived replication degree: " + value;
+
+        }
+        i++;
+        state[i]="Storage capacity = " + getStorageSpace() + " | Used space: " + getUsedSpace();
+
+        for (String s: state) {
+            if(s!=null)
+                System.out.println(s);
+        }
     }
 
     /**
@@ -143,7 +202,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         }
 
         saveRepDegInfoToDisk();
-
     }
 
     /**
@@ -179,7 +237,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
                 chunksReplicationDegree.put(key, properties.get(key).toString());
             }
         }
-
     }
 
     /**
@@ -195,8 +252,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         } else {
             return 0;
         }
-
-
     }
 
     /**
@@ -249,6 +304,22 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public boolean hasChunkBeenSent(String fileId, String chunkNo) {
         return sentChunks.get(fileId + chunkNo) != null;
 
+    }
+
+    public long getStorageSpace() {
+        return storageSpace;
+    }
+
+    public void setStorageSpace(long storageSpace) {
+        this.storageSpace = storageSpace;
+    }
+
+    public long getUsedSpace() {
+        return usedSpace;
+    }
+
+    public void setUsedSpace(long usedSpace) {
+        this.usedSpace = usedSpace;
     }
 
     public Restore getRestoreProtocol() {
