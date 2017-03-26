@@ -1,28 +1,22 @@
 package Peer;
 
-import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class InitPeer {
+class InitPeer {
 
-    private String version;
-    private String peerId;
-    private String mc_ip, mdb_ip, mdr_ip;
-    private int mc_port, mdb_port, mdr_port;
+    private InitPeer(String[] args) {
 
-    public InitPeer(String[] args) throws IOException {
+        Peer peer;
 
-        Peer peer = null;
-
-        this.version = args[0];
-        this.peerId = args[1];
-        this.mc_ip = args[2];
-        this.mc_port = Integer.parseInt(args[3]);
-        this.mdb_ip = args[4];
-        this.mdb_port = Integer.parseInt(args[5]);
-        this.mdr_ip = args[6];
-        this.mdr_port = Integer.parseInt(args[7]);
+        String version = args[0];
+        String peerId = args[1];
+        String mc_ip = args[2];
+        int mc_port = Integer.parseInt(args[3]);
+        String mdb_ip = args[4];
+        int mdb_port = Integer.parseInt(args[5]);
+        String mdr_ip = args[6];
+        int mdr_port = Integer.parseInt(args[7]);
 
         try {
             peer = new Peer(version, peerId, mc_ip, mdb_ip, mdr_ip, mc_port, mdb_port, mdr_port);
@@ -39,11 +33,8 @@ public class InitPeer {
         /* Needed for Mac OS X */
         System.setProperty("java.net.preferIPv4Stack", "true");
 
-        try {
-            InitPeer initPeer = new InitPeer(args);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        InitPeer initPeer = new InitPeer(args);
+
 
     }
 

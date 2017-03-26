@@ -28,7 +28,6 @@ public class Restore {
     private String fileName;
     private Peer peer;
     private int numberOfChunks = 0;
-    private int lastChunkSize = 0;
     private int restoredChunks = 0;
     private String fileId;
 
@@ -58,26 +57,26 @@ public class Restore {
 
     }
 
-    public void getFileInfo() {
+    private void getFileInfo() {
         long maxSizeChunk = 64 * 1000;
         String path = "./TestFiles/" + fileName;
         File file = new File(path);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         this.fileId = createHash(fileName + sdf.format(file.lastModified()));
-        RandomAccessFile fileRaf = null;
+        RandomAccessFile fileRaf;
         try {
             fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
             this.numberOfChunks = (int) (fileLength / maxSizeChunk) + 1;
-            this.lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
+            int lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("Number of chunks: " + this.numberOfChunks);
     }
 
-    public void requestChunks() {
+    private void requestChunks() {
 
         int chunkNo = 1;
 
@@ -93,7 +92,7 @@ public class Restore {
 
     }
 
-    public void constructFile() {
+    private void constructFile() {
 
         FileOutputStream fop = null;
         File file;

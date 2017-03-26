@@ -47,7 +47,7 @@ public class Mailman {
      * @param port        port of the multicast channel
      * @param messageType message type, in case of PUTCHUNK, the type is necessary for retrieving the body of the message
      */
-    public void deliverMessage(Message message, String addr, int port, String messageType) {
+    private void deliverMessage(Message message, String addr, int port, String messageType) {
 
         DatagramSocket socket;
         DatagramPacket packet;
@@ -239,35 +239,4 @@ public class Mailman {
 
     }
 
-    public DatagramPacket getRequest() {
-        return request;
-    }
-
-    public void setRequest(DatagramPacket request) {
-        this.request = request;
-    }
-
-    public Message getMessage() {
-        return message;
-    }
-
-    public void setMessage(Message message) {
-        this.message = message;
-    }
-
-    public Thread getThread() {
-        return thread;
-    }
-
-    public void setThread(Thread thread) {
-        this.thread = thread;
-    }
-
-    public Peer getPeer() {
-        return peer;
-    }
-
-    public void setPeer(Peer peer) {
-        this.peer = peer;
-    }
 }

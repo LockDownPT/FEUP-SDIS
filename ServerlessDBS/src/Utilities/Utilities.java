@@ -16,7 +16,7 @@ public class Utilities {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(data.getBytes("UTF-8"));
-            return bytesToHex(hash); // make it printable
+            result = bytesToHex(hash); // make it printable
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -30,7 +30,7 @@ public class Utilities {
      * @param hash
      * @return string with hash in hexadecimal
      */
-    public static String bytesToHex(byte[] hash) {
+    private static String bytesToHex(byte[] hash) {
         return DatatypeConverter.printHexBinary(hash);
     }
 }

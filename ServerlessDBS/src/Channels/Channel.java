@@ -15,7 +15,7 @@ public class Channel {
     private Thread thread;
     private Peer peer;
 
-    public Channel(String address, int port, Peer peer) throws IOException {
+    Channel(String address, int port, Peer peer) throws IOException {
         channel_addr = InetAddress.getByName(address);
         port_number = port;
 
@@ -29,7 +29,7 @@ public class Channel {
 
     }
 
-    public DatagramPacket receiveRequests(String protocol) throws IOException {
+    DatagramPacket receiveRequests(String protocol) throws IOException {
 
         byte[] buf;
 
@@ -49,47 +49,12 @@ public class Channel {
 
     }
 
-    public void closeChannel() throws IOException {
-        mc_socket.leaveGroup(channel_addr);
-    }
-
-    public int getPort_number() {
-        return port_number;
-    }
-
-    public void setPort_number(int port_number) {
-        this.port_number = port_number;
-    }
-
-    public InetAddress getChannel_addr() {
-        return channel_addr;
-    }
-
-    public void setChannel_addr(InetAddress channel_addr) {
-        this.channel_addr = channel_addr;
-    }
-
-    public MulticastSocket getMc_socket() {
-        return mc_socket;
-    }
-
-    public void setMc_socket(MulticastSocket mc_socket) {
-        this.mc_socket = mc_socket;
-    }
-
-    public Thread getThread() {
-        return thread;
-    }
-
-    public void setThread(Thread thread) {
+    void setThread(Thread thread) {
         this.thread = thread;
     }
 
-    public Peer getPeer() {
+    Peer getPeer() {
         return peer;
     }
 
-    public void setPeer(Peer peer) {
-        this.peer = peer;
-    }
 }

@@ -38,19 +38,6 @@ public class Header {
 
     }
 
-    public void constructHeader(String... fields) {
-
-        String header = "";
-
-        for (String field : fields) {
-            header.concat(field + SPACE);
-        }
-
-        header.concat(CRLF);
-        header.concat(CRLF);
-
-    }
-
     public String getHeaderString() {
 
         headerString = messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
@@ -64,10 +51,6 @@ public class Header {
 
     public void setMessageType(String messageType) {
         this.messageType = messageType;
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     public void setVersion(String version) {
@@ -106,7 +89,4 @@ public class Header {
         this.replicationDeg = replicationDeg;
     }
 
-    public void setHeaderString(String headerString) {
-        this.headerString = headerString;
-    }
 }

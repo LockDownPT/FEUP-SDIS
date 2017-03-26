@@ -30,21 +30,21 @@ public class Message {
 
     }
 
-    public void getMessageFromPacket(DatagramPacket packet) throws IOException {
+    private void getMessageFromPacket(DatagramPacket packet) throws IOException {
 
         ByteArrayInputStream message = new ByteArrayInputStream(packet.getData());
 
-        String header="";
+        StringBuilder header= new StringBuilder();
         byte character;
         while((character = (byte)message.read()) != CR) {
-            header += (char) character;
+            header.append((char) character);
         }
 
         if((byte)message.read() != LF || (byte)message.read() != CR || (byte)message.read() != LF){
             throw new IOException("Wrong Header Format.");
         }
 
-        String[] requestHeader = header.split(" ");
+        String[] requestHeader = header.toString().split(" ");
 
         byte[] bodyContent = new byte[packet.getLength()];
 
@@ -107,10 +107,6 @@ public class Message {
         return messageHeader;
     }
 
-    public void setMessageHeader(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree) {
-        this.messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
-    }
-
     public byte[] getBody() {
         return body;
     }
@@ -120,7 +116,4 @@ public class Message {
     }
 
 
-    public void setMessageHeader(Header messageHeader) {
-        this.messageHeader = messageHeader;
-    }
 }

@@ -7,18 +7,16 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class TCA {
+class TCA {
 
-    private String peerAccessPoint;
-    private String protocol;
     private String file;
     private int replicationDegree;
     private PeerInterface testingPeer;
 
-    public TCA(String[] args) {
+    private TCA(String[] args) {
 
-        peerAccessPoint = args[0];
-        protocol = args[1];
+        String peerAccessPoint = args[0];
+        String protocol = args[1];
         file = args[2];
         if (protocol.equals("BACKUP"))
             replicationDegree = Integer.parseInt(args[3]);
@@ -44,11 +42,11 @@ public class TCA {
 
     }
 
-    public void testBackup() throws RemoteException {
+    private void testBackup() throws RemoteException {
         testingPeer.backup(file, replicationDegree);
     }
 
-    public void testRestore() throws RemoteException {
+    private void testRestore() throws RemoteException {
         testingPeer.restore(file);
     }
 

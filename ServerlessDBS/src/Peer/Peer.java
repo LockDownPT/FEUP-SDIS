@@ -18,9 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Peer extends UnicastRemoteObject implements PeerInterface {
 
-    private MC controlChannel;
-    private MDB backupChannel;
-    private MDR restoreChannel;
     private Restore restoreProtocol = null;
     private Backup backupProtocol = null;
     private String mc_ip, mdb_ip, mdr_ip;
@@ -56,9 +53,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         this.mdr_ip = mdr_ip;
         this.mdr_port = mdr_port;
 
-        backupChannel = new MDB(mdb_ip, mdb_port, this);
-        restoreChannel = new MDR(mdr_ip, mdr_port, this);
-        controlChannel = new MC(mc_ip, mc_port, this);
+        MDB backupChannel = new MDB(mdb_ip, mdb_port, this);
+        MDR restoreChannel = new MDR(mdr_ip, mdr_port, this);
+        MC controlChannel = new MC(mc_ip, mc_port, this);
 
 
         //Creates peer "disk storage"
@@ -177,72 +174,36 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return restoreProtocol;
     }
 
-    public Backup getBackupProtocol() {
-        return backupProtocol;
-    }
-
     public String getMc_ip() {
         return mc_ip;
-    }
-
-    public void setMc_ip(String mc_ip) {
-        this.mc_ip = mc_ip;
     }
 
     public String getMdb_ip() {
         return mdb_ip;
     }
 
-    public void setMdb_ip(String mdb_ip) {
-        this.mdb_ip = mdb_ip;
-    }
-
     public String getMdr_ip() {
         return mdr_ip;
-    }
-
-    public void setMdr_ip(String mdr_ip) {
-        this.mdr_ip = mdr_ip;
     }
 
     public int getMc_port() {
         return mc_port;
     }
 
-    public void setMc_port(int mc_port) {
-        this.mc_port = mc_port;
-    }
-
     public int getMdb_port() {
         return mdb_port;
-    }
-
-    public void setMdb_port(int mdb_port) {
-        this.mdb_port = mdb_port;
     }
 
     public int getMdr_port() {
         return mdr_port;
     }
 
-    public void setMdr_port(int mdr_port) {
-        this.mdr_port = mdr_port;
-    }
-
     public String getPeerId() {
         return peerId;
     }
 
-    public void setPeerId(String peerId) {
-        this.peerId = peerId;
-    }
-
     public String getVersion() {
         return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
 }
