@@ -180,35 +180,37 @@ public class Mailman {
         }
 
         public void storeChunk() {
-
-            OutputStream output = null;
-            try {
-                //Creates sub folders structure -> peerId/FileId/ChunkNo
-                File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                outFile.getParentFile().mkdirs();
-                outFile.createNewFile();
-                output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                output.write(message.getBody(), 0, message.getBody().length);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+            if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+                OutputStream output = null;
                 try {
-                    if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+                    //Creates sub folders structure -> peerId/FileId/ChunkNo
+                    File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                    outFile.getParentFile().mkdirs();
+                    outFile.createNewFile();
+                    output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    output.write(message.getBody(), 0, message.getBody().length);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+
                         peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
                         peer.increaseReplicationDegree(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
                         Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                         Mailman sendStored = new Mailman(stored, peer);
                         sendStored.startMailmanThread();
+
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    output.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
+
         }
 
         public void sendChunk() {
