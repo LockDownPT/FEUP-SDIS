@@ -118,8 +118,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             The backup service id of the file ✓
             The desired replication degree ✓
             For each chunk of the file:
-                Its id
-                Its perceived replication degree
+                Its id ✓
+                Its perceived replication degree ✓
         For each chunk it stores:
             Its id  ✓
             Its size (in KBytes)
@@ -139,15 +139,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             state[i] = "Backup service id: " + b.getCreator().peerId;
             i++;
             state[i] = "Desired Replication degree: " + b.getReplicationDegree();
-            for (Map.Entry<String, String> entry : chunksReplicationDegree.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                if(key.equals(b.getFileId())){
-                    i++;
-                    state[i] = "Chunk id: " + key;
-                    i++;
-                    state[i] = "Perceived replication degree: " + value;
-                }
+
+            for(int n = 1; n<=b.getNumberOfChunks(); n++){
+                i++;
+                state[i] = "Chunk id: " + b.getFileId()+n;
+                i++;
+                state[i] = "Perceived replication degree: " + chunksReplicationDegree.get(b.getFileId()+n);
             }
         }
         for (Map.Entry<String, String> entry : storedChunks.entrySet()) {

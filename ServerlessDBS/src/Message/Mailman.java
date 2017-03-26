@@ -107,7 +107,7 @@ public class Mailman {
                 } finally {
                     repDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     if (repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg()))
-                        deliverMessage(message, peer.getMdb_ip(), peer.getMdb_port(), STORED);
+                        deliverMessage(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
                     numberOfTries++;
                     System.out.println("Tentativa: " + numberOfTries);
                     System.out.println("RepDeg: " + repDeg);
@@ -193,7 +193,7 @@ public class Mailman {
                 }
                 try {
                     output.write(message.getBody(), 0, message.getBody().length);
-                    peer.setUsedSpace(peer.getStorageSpace()+message.getBody().length);
+                    peer.setUsedSpace(peer.getUsedSpace()+message.getBody().length);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {

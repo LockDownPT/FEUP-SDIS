@@ -19,6 +19,7 @@ public class Backup {
     private int replicationDegree;
     private String fileId;
     private Peer creator;
+    private int numberOfChunks=0;
 
 
     public Backup(String file, int replicationDegree, Peer creator) {
@@ -32,7 +33,7 @@ public class Backup {
 
         Message request = new Message(PUTCHUNK, creator.getVersion(), creator.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
-
+        System.out.println("CHUNK LENGTH:" + request.getBody().length);
         Mailman messageHandler = new Mailman(request, creator);
         messageHandler.startMailmanThread();
 
@@ -68,7 +69,7 @@ public class Backup {
                     sendChunk(buf, chunkId);
                 }
                 chunkNo++;
-
+                this.numberOfChunks++;
             }
             if (lastChunkSize >= 0) {
 
@@ -77,7 +78,7 @@ public class Backup {
                 if (val != -1) {
                     sendChunk(buf, chunkNo + 1);
                 }
-
+                this.numberOfChunks++;
             }
             fileRaf.close();
 
@@ -117,6 +118,14 @@ public class Backup {
 
     public void setCreator(Peer creator) {
         this.creator = creator;
+    }
+
+    public int getNumberOfChunks() {
+        return numberOfChunks;
+    }
+
+    public void setNumberOfChunks(int numberOfChunks) {
+        this.numberOfChunks = numberOfChunks;
     }
 }
 
