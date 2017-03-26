@@ -9,15 +9,13 @@ import java.net.MulticastSocket;
 
 public class Channel {
 
-    private int port_number;
-    private InetAddress channel_addr;
     private MulticastSocket mc_socket;
     private Thread thread;
     private Peer peer;
 
     Channel(String address, int port, Peer peer) throws IOException {
-        channel_addr = InetAddress.getByName(address);
-        port_number = port;
+        InetAddress channel_addr = InetAddress.getByName(address);
+        int port_number = port;
 
         System.out.println(address);
         System.out.println(port);

@@ -27,7 +27,7 @@ class TCA {
             Registry registry = LocateRegistry.getRegistry("localhost");
             testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Failed to connect to peer:" + args[0]);
         }
 
     }
@@ -36,14 +36,19 @@ class TCA {
 
         String protocol = args[1];
         TCA testApplication = new TCA(args);
-        if (protocol.equals("BACKUP")) {
-            testApplication.testBackup();
-        } else if (protocol.equals("RESTORE")) {
-            testApplication.testRestore();
-        } else if (protocol.equals("STATE")){
-            testApplication.state();
-        } else {
-            System.out.println("WRONG PROTOCOL");
+        switch (protocol) {
+            case "BACKUP":
+                testApplication.testBackup();
+                break;
+            case "RESTORE":
+                testApplication.testRestore();
+                break;
+            case "STATE":
+                testApplication.state();
+                break;
+            default:
+                System.out.println("WRONG PROTOCOL");
+                break;
         }
 
     }

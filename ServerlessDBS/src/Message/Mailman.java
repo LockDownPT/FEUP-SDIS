@@ -14,14 +14,13 @@ import static Utilities.Constants.*;
 
 public class Mailman {
 
-    private DatagramPacket request;
     private Message message;
     private Thread thread;
     private Peer peer;
 
 
     public Mailman(DatagramPacket message, Peer creator) {
-        this.request = message;
+        DatagramPacket request = message;
         this.message = new Message(request);
         this.thread = new ReceiverThread();
         this.peer = creator;
@@ -179,6 +178,10 @@ public class Mailman {
 
         }
 
+        /**
+         * If the peer doesn't have the chunk, it will store it inside it's "disk" and send a STORED
+         * message for the sender
+         */
         public void storeChunk() {
             if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
                 OutputStream output = null;
@@ -213,6 +216,9 @@ public class Mailman {
 
         }
 
+        /**
+         * If the peer has the chunk and it hasn't been sent by another peer, it will send it.
+         */
         public void sendChunk() {
             if (peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
                 try {
@@ -231,6 +237,9 @@ public class Mailman {
             }
         }
 
+        /**
+         * Saves received chunk, if it has asked for it
+         */
         public void saveChunk() {
             if (peer.getRestoreProtocol() != null) {
                 peer.getRestoreProtocol().storeChunk(message.getMessageHeader().getChunkNo(), message.getBody());

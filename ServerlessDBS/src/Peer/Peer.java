@@ -26,7 +26,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
     private String version;
-    private long storageSpace=0;
     private long usedSpace=0;
     /**
      * String is a par of fileId+chunkNo
@@ -204,7 +203,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     /**
      * Saves information about chunks replication degree to non-volatile memory
      */
-    public void saveRepDegInfoToDisk(){
+    private void saveRepDegInfoToDisk(){
         Properties properties = new Properties();
 
         properties.putAll(chunksReplicationDegree);
@@ -219,7 +218,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     /**
      *  Loads information about chunks replication degree (if such exists)
      */
-    public void loadRepDegFromDisk(){
+    private void loadRepDegFromDisk(){
 
         File f = new File(peerId+ "/chunksRepDeg.properties");
         if(f.exists() && !f.isDirectory()) {
@@ -303,12 +302,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public long getStorageSpace() {
+    private long getStorageSpace() {
+        long storageSpace = 0;
         return storageSpace;
-    }
-
-    public void setStorageSpace(long storageSpace) {
-        this.storageSpace = storageSpace;
     }
 
     public long getUsedSpace() {

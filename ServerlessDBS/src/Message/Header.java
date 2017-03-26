@@ -11,7 +11,6 @@ public class Header {
     private String fileId;
     private String chunkNo;
     private String replicationDeg;
-    private String headerString;
 
     public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo, String ReplicationDeg) {
 
@@ -40,7 +39,7 @@ public class Header {
 
     public String getHeaderString() {
 
-        headerString = messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
+        String headerString = messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
 
         return headerString;
     }

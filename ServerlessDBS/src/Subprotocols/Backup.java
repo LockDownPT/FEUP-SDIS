@@ -92,40 +92,21 @@ public class Backup {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public int getReplicationDegree() {
         return replicationDegree;
-    }
-
-    public void setReplicationDegree(int replicationDegree) {
-        this.replicationDegree = replicationDegree;
     }
 
     public String getFileId() {
         return fileId;
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
-    }
-
     public Peer getCreator() {
         return creator;
-    }
-
-    public void setCreator(Peer creator) {
-        this.creator = creator;
     }
 
     public int getNumberOfChunks() {
         return numberOfChunks;
     }
 
-    public void setNumberOfChunks(int numberOfChunks) {
-        this.numberOfChunks = numberOfChunks;
-    }
 }
 

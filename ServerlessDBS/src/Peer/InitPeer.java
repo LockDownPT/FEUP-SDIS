@@ -23,7 +23,7 @@ class InitPeer {
             Registry registry = LocateRegistry.getRegistry();
             registry.rebind(peerId, peer);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Failed to bind peer to registry");
         }
 
     }
