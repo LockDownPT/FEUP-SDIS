@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
+    private Backup backup = null;
     private Map<String, Backup>backupProtocol = new ConcurrentHashMap<>();
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
@@ -74,6 +75,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         backupChannel.listen();
         restoreChannel.listen();
         controlChannel.listen();
+
+
+        this.backup = new Backup(this);
+
+
+        restoreProtocol = new Restore(this);
     }
 
     /***
@@ -83,7 +90,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     public void backup(String file, int replicationDegree) {
 
-        Backup backup = new Backup(file, replicationDegree, this);
+
+        this.backup = new Backup(file, replicationDegree, this);
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
         backup.readChunks();
@@ -133,9 +141,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         int i=0;
         for (Backup b : backupProtocol.values()) {
             i++;
-            state[i] = "File pathname: " + b.getCreator().peerId +"/"+b.getFileName();
+            state[i] = "File pathname: " + b.getPeer().peerId +"/"+b.getFileName();
             i++;
-            state[i] = "Backup service id: " + b.getCreator().peerId;
+            state[i] = "Backup service id: " + b.getPeer().peerId;
             i++;
             state[i] = "Desired Replication degree: " + b.getReplicationDegree();
 
@@ -305,6 +313,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private long getStorageSpace() {
         long storageSpace = 0;
         return storageSpace;
+    }
+
+    public Backup getBackup(){
+        return this.backup;
     }
 
     public long getUsedSpace() {
