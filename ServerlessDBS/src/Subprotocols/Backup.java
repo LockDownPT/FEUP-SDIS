@@ -5,11 +5,12 @@ import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 
 import static Utilities.Constants.PUTCHUNK;
-import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 
 public class Backup {
@@ -17,23 +18,23 @@ public class Backup {
     private String fileName;
     private int replicationDegree;
     private String fileId;
-    private Peer peer;
+    private Peer creator;
     private int numberOfChunks=0;
 
 
-    public Backup(String file, int replicationDegree, Peer peer) {
+    public Backup(String file, int replicationDegree, Peer creator) {
         this.fileName = file;
         this.replicationDegree = replicationDegree;
         this.fileId = null;
-        this.peer = peer;
+        this.creator = creator;
     }
 
     private void sendChunk(byte[] chunk, int chunkNo) {
 
-        Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
+        Message request = new Message(PUTCHUNK, creator.getVersion(), creator.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
         System.out.println("CHUNK LENGTH:" + request.getBody().length);
-        Mailman messageHandler = new Mailman(request, peer);
+        Mailman messageHandler = new Mailman(request, creator);
         messageHandler.startMailmanThread();
 
 
@@ -87,86 +88,6 @@ public class Backup {
         }
     }
 
-    /**
-     * If the peer doesn't have the chunk, it will store it inside it's "disk" and send a STORED
-     * message for the sender
-     */
-    public void handlePutchunk(Message message) {
-        if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-
-            peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-            peer.increaseReplicationDegree(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
-            Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-            Mailman sendStored = new Mailman(stored, peer);
-            sendStored.startMailmanThread();
-            storeChunk(message);
-        }
-    }
-
-    public void storeChunk(Message message){
-        try {
-            OutputStream output = null;
-            //Creates sub folders structure -> peerId/FileId/ChunkNo
-            File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-            outFile.getParentFile().mkdirs();
-            outFile.createNewFile();
-            output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-            output.write(message.getBody(), 0, message.getBody().length);
-            peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
-            output.close();
-        } catch (IOException e) {
-            storeChunk(message);
-        }
-    }
-
-    /**
-     * Sends PUTCHUNK request for the multicast backup channel (MDB) with the following format:
-     * PUTCHUNK <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
-     * Then waits one second and checks if the desired replication degree
-     * has been accomplished. Otherwise it resends the PUTCHUNK request, a maximum of 5 times.
-     */
-    public void deliverPutchunkMessage(Mailman.SenderThread sender, Message message) {
-
-        sender.deliverMessage(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
-
-        int repDeg = 0;
-        int numberOfTries = 0;
-        while (repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg()) && numberOfTries < 5) {
-            try {
-                Thread.sleep((long) (Math.random() * 1000));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                repDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                if (repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg()))
-                    sender.deliverMessage(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
-                numberOfTries++;
-                System.out.println("Tentativa: " + numberOfTries);
-                System.out.println("RepDeg: " + repDeg);
-            }
-        }
-        if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
-            System.out.println("Replication degree not achived");
-        }
-    }
-
-    /**
-     * A peer that stores the chunk upon receiving the PUTCHUNK message, replies by sending
-     * on the multicast control channel (MC) a confirmation message with the following format:
-     * STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
-     * after a random delay uniformly distributed between 0 and 400 ms
-     */
-    public void deliverStoredMessage(Mailman.SenderThread sender, Message message) {
-        try {
-            Thread.sleep((long) (Math.random() * 400));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            sender.deliverMessage(message, peer.getMc_ip(), peer.getMc_port(), STORED);
-        }
-
-    }
-
     public String getFileName() {
         return fileName;
     }
@@ -179,8 +100,8 @@ public class Backup {
         return fileId;
     }
 
-    public Peer getPeer() {
-        return peer;
+    public Peer getCreator() {
+        return creator;
     }
 
     public int getNumberOfChunks() {
