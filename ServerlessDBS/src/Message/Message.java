@@ -1,4 +1,5 @@
 package Message;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -10,16 +11,16 @@ public class Message {
     private Header messageHeader;
     private byte[] body;
 
-    public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree){
-        messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
+    public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree) {
+        messageHeader = new Header(messageType, version, senderId, fileId, chunkNo, replicationDegree);
 
     }
 
-    public Message(String messageType, String version, String senderId, String fileId, String chunkNo){
-        messageHeader = new Header(messageType,version, senderId, fileId, chunkNo);
+    public Message(String messageType, String version, String senderId, String fileId, String chunkNo) {
+        messageHeader = new Header(messageType, version, senderId, fileId, chunkNo);
     }
 
-    public Message(DatagramPacket packet){
+    public Message(DatagramPacket packet) {
 
         messageHeader = new Header();
         try {
@@ -34,13 +35,13 @@ public class Message {
 
         ByteArrayInputStream message = new ByteArrayInputStream(packet.getData());
 
-        StringBuilder header= new StringBuilder();
+        StringBuilder header = new StringBuilder();
         byte character;
-        while((character = (byte)message.read()) != CR) {
+        while ((character = (byte) message.read()) != CR) {
             header.append((char) character);
         }
 
-        if((byte)message.read() != LF || (byte)message.read() != CR || (byte)message.read() != LF){
+        if ((byte) message.read() != LF || (byte) message.read() != CR || (byte) message.read() != LF) {
             throw new IOException("Wrong Header Format.");
         }
 
@@ -87,15 +88,15 @@ public class Message {
 
     }
 
-    public byte[] getMessageBytes(String protocol){
+    public byte[] getMessageBytes(String protocol) {
 
         byte[] headerBytes = messageHeader.getHeaderString().getBytes();
         byte[] buf;
-        if(protocol.equals(PUTCHUNK) || protocol.equals(CHUNK)){
+        if (protocol.equals(PUTCHUNK) || protocol.equals(CHUNK)) {
             buf = new byte[headerBytes.length + body.length];
             System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
             System.arraycopy(body, 0, buf, headerBytes.length, body.length);
-        }else{
+        } else {
             buf = new byte[headerBytes.length];
             System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
         }

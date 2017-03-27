@@ -39,9 +39,7 @@ public class Header {
 
     public String getHeaderString() {
 
-        String headerString = messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
-
-        return headerString;
+        return messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
     }
 
     public String getMessageType() {

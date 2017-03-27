@@ -18,7 +18,7 @@ public class Backup {
     private int replicationDegree;
     private String fileId;
     private Peer peer;
-    private int numberOfChunks=0;
+    private int numberOfChunks = 0;
 
 
     public Backup(String file, int replicationDegree, Peer peer) {
@@ -62,8 +62,9 @@ public class Backup {
                 e.printStackTrace();
             }
             try {
+                assert output != null;
                 output.write(message.getBody(), 0, message.getBody().length);
-                peer.setUsedSpace(peer.getUsedSpace()+message.getBody().length);
+                peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -74,6 +75,7 @@ public class Backup {
                     Mailman sendStored = new Mailman(stored, peer);
                     sendStored.startMailmanThread();
 
+                    assert output != null;
                     output.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -91,8 +93,8 @@ public class Backup {
         try {
             Thread.sleep((long) (Math.random() * 1000));
             int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
-            int currentRepDeg = getPeer().getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
-            if(currentRepDeg<desiredRepDeg){
+            int currentRepDeg = getPeer().getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+            if (currentRepDeg < desiredRepDeg) {
                 storeChunk(message);
             }
         } catch (InterruptedException e) {

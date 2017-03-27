@@ -14,7 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -22,12 +23,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
     private Backup backup = null;
-    private Map<String, Backup>backupProtocol = new ConcurrentHashMap<>();
+    private Map<String, Backup> backupProtocol = new ConcurrentHashMap<>();
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
     private String version;
-    private long usedSpace=0;
+    private long usedSpace = 0;
     /**
      * String is a par of fileId+chunkNo
      * String holds the desired replication degree
@@ -97,7 +98,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         backup.readChunks();
 
         //Starts backup protocol
-        backupProtocol.put(backup.getFileId(),backup);
+        backupProtocol.put(backup.getFileId(), backup);
 
         System.out.println("Finished Reading Chunks");
 
@@ -120,38 +121,37 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * This operation allows to observe the service state. In response to such a request, the peer shall send to the client the following information:
-        For each file whose backup it has initiated:
-            The file pathname ✓
-            The backup service id of the file ✓
-            The desired replication degree ✓
-            For each chunk of the file:
-                Its id ✓
-                Its perceived replication degree ✓
-        For each chunk it stores:
-            Its id  ✓
-            Its size (in KBytes)
-            Its perceived replication degree ✓
-        The peer's storage capacity, i.e. the maximum amount of disk space that can be used to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
-
+     * For each file whose backup it has initiated:
+     * The file pathname ✓
+     * The backup service id of the file ✓
+     * The desired replication degree ✓
+     * For each chunk of the file:
+     * Its id ✓
+     * Its perceived replication degree ✓
+     * For each chunk it stores:
+     * Its id  ✓
+     * Its size (in KBytes)
+     * Its perceived replication degree ✓
+     * The peer's storage capacity, i.e. the maximum amount of disk space that can be used to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
      */
-    public void state(){
+    public void state() {
 
-        String[] state= new String[1024];
+        String[] state = new String[1024];
 
-        int i=0;
+        int i = 0;
         for (Backup b : backupProtocol.values()) {
             i++;
-            state[i] = "File pathname: " + b.getPeer().peerId +"/"+b.getFileName();
+            state[i] = "File pathname: " + b.getPeer().peerId + "/" + b.getFileName();
             i++;
             state[i] = "Backup service id: " + b.getPeer().peerId;
             i++;
             state[i] = "Desired Replication degree: " + b.getReplicationDegree();
 
-            for(int n = 1; n<=b.getNumberOfChunks(); n++){
+            for (int n = 1; n <= b.getNumberOfChunks(); n++) {
                 i++;
-                state[i] = "Chunk id: " + b.getFileId()+n;
+                state[i] = "Chunk id: " + b.getFileId() + n;
                 i++;
-                state[i] = "Perceived replication degree: " + chunksReplicationDegree.get(b.getFileId()+n);
+                state[i] = "Perceived replication degree: " + chunksReplicationDegree.get(b.getFileId() + n);
             }
         }
         for (Map.Entry<String, String> entry : storedChunks.entrySet()) {
@@ -164,10 +164,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
         }
         i++;
-        state[i]="Storage capacity = " + getStorageSpace() + " | Used space: " + getUsedSpace();
+        state[i] = "Storage capacity = " + getStorageSpace() + " | Used space: " + getUsedSpace();
 
-        for (String s: state) {
-            if(s!=null)
+        for (String s : state) {
+            if (s != null)
                 System.out.println(s);
         }
     }
@@ -188,6 +188,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Increases registry about the number of times a chunk has been replicated
+     *
      * @param fileId
      */
     public void increaseReplicationDegree(String fileId) {
@@ -211,28 +212,28 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     /**
      * Saves information about chunks replication degree to non-volatile memory
      */
-    private void saveRepDegInfoToDisk(){
+    private void saveRepDegInfoToDisk() {
         Properties properties = new Properties();
 
         properties.putAll(chunksReplicationDegree);
 
         try {
-            properties.store(new FileOutputStream(peerId+ "/chunksRepDeg.properties"), null);
+            properties.store(new FileOutputStream(peerId + "/chunksRepDeg.properties"), null);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     *  Loads information about chunks replication degree (if such exists)
+     * Loads information about chunks replication degree (if such exists)
      */
-    private void loadRepDegFromDisk(){
+    private void loadRepDegFromDisk() {
 
-        File f = new File(peerId+ "/chunksRepDeg.properties");
-        if(f.exists() && !f.isDirectory()) {
+        File f = new File(peerId + "/chunksRepDeg.properties");
+        if (f.exists() && !f.isDirectory()) {
             Properties properties = new Properties();
             try {
-                properties.load(new FileInputStream(peerId+ "/chunksRepDeg.properties"));
+                properties.load(new FileInputStream(peerId + "/chunksRepDeg.properties"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -245,7 +246,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Check the replication degree of a certain chunk
-     * @param fileId Id of the file that the chunk belongs to
+     *
+     * @param fileId  Id of the file that the chunk belongs to
      * @param chunkNo Chunk number
      * @return returns the replication degree of the chunk
      */
@@ -260,7 +262,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Verifies if the peer has this chunk
-     * @param fileId Id of the file that the chunk belongs to
+     *
+     * @param fileId  Id of the file that the chunk belongs to
      * @param chunkNo Chunk number
      * @return returns true if the peer has the chunk and false otherwise
      */
@@ -272,7 +275,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Reads chunk from the disk
-     * @param fileId Id of the file that the chunk belongs to
+     *
+     * @param fileId  Id of the file that the chunk belongs to
      * @param chunkNo Chunk number
      * @return returns a byte array with the chunk
      */
@@ -291,7 +295,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Adds boolean to sentChunks registry saying that the chunk has been sent
-     * @param fileId Id of the file that the chunk belongs to
+     *
+     * @param fileId  Id of the file that the chunk belongs to
      * @param chunkNo Chunk number
      */
     public void addSentChunkInfo(String fileId, String chunkNo) {
@@ -301,7 +306,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Returns true if it has a record that a peer has already sent the requested chunk
-     * @param fileId Id of the file that the chunk belongs to
+     *
+     * @param fileId  Id of the file that the chunk belongs to
      * @param chunkNo Chunk number
      * @return Returns true if it has a record that a peer has already sent the requested chunk
      */
@@ -311,11 +317,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     }
 
     private long getStorageSpace() {
-        long storageSpace = 0;
-        return storageSpace;
+        return (long) 0;
     }
 
-    public Backup getBackup(){
+    public Backup getBackup() {
         return this.backup;
     }
 

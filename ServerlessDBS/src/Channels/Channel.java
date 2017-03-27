@@ -15,12 +15,11 @@ public class Channel {
 
     Channel(String address, int port, Peer peer) throws IOException {
         InetAddress channel_addr = InetAddress.getByName(address);
-        int port_number = port;
 
         System.out.println(address);
         System.out.println(port);
 
-        mc_socket = new MulticastSocket(port_number);
+        mc_socket = new MulticastSocket(port);
         mc_socket.joinGroup(channel_addr);
 
         this.peer = peer;

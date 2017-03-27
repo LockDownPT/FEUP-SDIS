@@ -17,7 +17,7 @@ class TCA {
 
         String peerAccessPoint = args[0];
         String protocol = args[1];
-        if(!protocol.equals("STATE")){
+        if (!protocol.equals("STATE")) {
             file = args[2];
         }
         if (protocol.equals("BACKUP"))
@@ -61,8 +61,7 @@ class TCA {
         testingPeer.restore(file);
     }
 
-    private void state() throws RemoteException
-    {
+    private void state() throws RemoteException {
         testingPeer.state();
     }
 

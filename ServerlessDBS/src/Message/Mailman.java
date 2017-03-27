@@ -2,10 +2,7 @@ package Message;
 
 import Peer.Peer;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -23,8 +20,7 @@ public class Mailman {
 
 
     public Mailman(DatagramPacket message, Peer creator) {
-        DatagramPacket request = message;
-        this.message = new Message(request);
+        this.message = new Message(message);
         this.thread = new ReceiverThread();
         this.peer = creator;
     }
@@ -35,11 +31,11 @@ public class Mailman {
         this.peer = creator;
     }
 
-    public Mailman(Message message, String addr, int port, String messageType){
+    public Mailman(Message message, String addr, int port, String messageType) {
         this.message = message;
-        this.addr=addr;
-        this.port=port;
-        this.messageType=messageType;
+        this.addr = addr;
+        this.port = port;
+        this.messageType = messageType;
         this.thread = new DeliverMessageThread();
     }
 
@@ -77,9 +73,9 @@ public class Mailman {
         }
     }
 
-    public class DeliverMessageThread extends Thread{
-        public void run(){
-            deliverMessage(message, addr,port,messageType);
+    public class DeliverMessageThread extends Thread {
+        public void run() {
+            deliverMessage(message, addr, port, messageType);
         }
     }
 
@@ -91,7 +87,7 @@ public class Mailman {
                     peer.getBackup().deliverPutchunkMessage(message);
                     break;
                 case STORED:
-                    if(peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0"))
                         peer.getBackup().deliverStoredMessage(message);
                     else
                         peer.getBackup().deliverStoredMessageEnhanced(message);
@@ -116,7 +112,7 @@ public class Mailman {
                 return;
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
-                    if(peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0"))
                         peer.getBackup().storeChunk(message);
                     else
                         peer.getBackup().storeChunkEnhanced(message);

@@ -3,7 +3,6 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
-import com.sun.xml.internal.bind.marshaller.MinimumEscapeHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,9 +13,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static Utilities.Constants.CHUNK;
-import static Utilities.Constants.GETCHUNK;
-import static Utilities.Constants.STORED;
+import static Utilities.Constants.*;
 import static Utilities.Utilities.createHash;
 import static java.lang.Thread.sleep;
 
@@ -162,7 +159,7 @@ public class Restore {
         }
     }
 
-    public void storeChunk(String chunkNo, byte[] chunk) {
+    private void storeChunk(String chunkNo, byte[] chunk) {
         if (chunks.get(chunkNo) == null) {
             chunks.put(chunkNo, chunk);
             restoredChunks++;
