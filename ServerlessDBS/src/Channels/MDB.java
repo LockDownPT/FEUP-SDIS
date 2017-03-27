@@ -27,7 +27,7 @@ public class MDB extends Channel {
 
         /***
          * Receives backup request and saves chunks to peerId/FileId folder
-         * @param request Backup DatagramPacket with file info and chunk content
+         * @param request BackupEnhanced DatagramPacket with file info and chunk content
          */
         public void handleRequest(DatagramPacket request) {
             Mailman messageHandeler = new Mailman(request, getPeer());

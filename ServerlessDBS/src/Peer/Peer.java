@@ -133,9 +133,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         int i=0;
         for (Backup b : backupProtocol.values()) {
             i++;
-            state[i] = "File pathname: " + b.getCreator().peerId +"/"+b.getFileName();
+            state[i] = "File pathname: " + b.getPeer().peerId +"/"+b.getFileName();
             i++;
-            state[i] = "Backup service id: " + b.getCreator().peerId;
+            state[i] = "Backup service id: " + b.getPeer().peerId;
             i++;
             state[i] = "Desired Replication degree: " + b.getReplicationDegree();
 
@@ -305,6 +305,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private long getStorageSpace() {
         long storageSpace = 0;
         return storageSpace;
+    }
+
+    public Backup getBackupProtocol(String fileId){
+        return backupProtocol.get(fileId);
     }
 
     public long getUsedSpace() {
