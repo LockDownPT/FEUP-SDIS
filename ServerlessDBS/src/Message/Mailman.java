@@ -160,7 +160,7 @@ public class Mailman {
                 return;
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
-                    storeChunk();
+                    storeChunkEnhanced();
                     break;
                 case STORED:
                     peer.increaseReplicationDegree(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
@@ -214,6 +214,23 @@ public class Mailman {
                 }
             }
 
+        }
+
+        /**
+         * Waits a random time before actually store the chunk
+         * If the replication degree of the chunk is already achieved it doesn't store it
+         */
+        public void storeChunkEnhanced() {
+            try {
+                Thread.sleep((long) (Math.random() * 3000));
+                int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
+                int currentRepDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(),message.getMessageHeader().getChunkNo());
+                if(currentRepDeg<desiredRepDeg){
+                    storeChunk();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         /**
