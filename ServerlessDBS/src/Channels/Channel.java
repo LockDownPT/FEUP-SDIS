@@ -26,11 +26,11 @@ public class Channel {
 
     }
 
-    DatagramPacket receiveRequests(String protocol) throws IOException {
+    public DatagramPacket receiveRequests(String protocol) throws IOException {
 
         byte[] buf;
 
-        if (protocol.equals("BACKUP") || protocol.equals("RESTORE")) {
+        if ("BACKUP".equals(protocol) || "RESTORE".equals(protocol)) {
             buf = new byte[70000];
         } else {
             buf = new byte[256];
@@ -46,11 +46,11 @@ public class Channel {
 
     }
 
-    void setThread(Thread thread) {
+    public void setThread(Thread thread) {
         this.thread = thread;
     }
 
-    Peer getPeer() {
+    public Peer getPeer() {
         return peer;
     }
 

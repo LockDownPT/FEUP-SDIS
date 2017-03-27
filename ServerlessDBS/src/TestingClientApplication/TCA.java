@@ -17,10 +17,10 @@ class TCA {
 
         String peerAccessPoint = args[0];
         String protocol = args[1];
-        if (!protocol.equals("STATE")) {
+        if (!"STATE".equals(protocol)) {
             file = args[2];
         }
-        if (protocol.equals("BACKUP"))
+        if ("BACKUP".equals(protocol))
             replicationDegree = Integer.parseInt(args[3]);
 
         try {
