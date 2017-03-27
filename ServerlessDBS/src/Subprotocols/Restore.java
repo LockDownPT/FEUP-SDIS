@@ -3,6 +3,7 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
+import com.sun.xml.internal.bind.marshaller.MinimumEscapeHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,7 +14,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static Utilities.Constants.CHUNK;
 import static Utilities.Constants.GETCHUNK;
+import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 import static java.lang.Thread.sleep;
 
@@ -36,6 +39,11 @@ public class Restore {
         fileName = file;
         this.peer = peer;
     }
+
+    public Restore(Peer peer) {
+        this.peer = peer;
+    }
+
 
     public void start() {
 
@@ -122,11 +130,61 @@ public class Restore {
         }
     }
 
+    /**
+     * If the peer has the chunk and it hasn't been sent by another peer, it will send it.
+     */
+    public void sendChunk(Message message) {
+        if (peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+            try {
+                Thread.sleep((long) (Math.random() * 400));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                if (!peer.hasChunkBeenSent(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+                    Message chunk = new Message(CHUNK, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo()));
+                    Mailman sendChunk = new Mailman(chunk, peer);
+                    sendChunk.startMailmanThread();
+                    System.out.println("Sent CHUNK");
+                }
+            }
+        }
+    }
+
+    /**
+     * Saves received chunk, if it has asked for it
+     */
+    public void saveChunk(Message message) {
+        if (peer.getRestoreProtocol() != null) {
+            peer.getRestoreProtocol().storeChunk(message.getMessageHeader().getChunkNo(), message.getBody());
+        } else {
+            peer.addSentChunkInfo(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+        }
+    }
+
     public void storeChunk(String chunkNo, byte[] chunk) {
         if (chunks.get(chunkNo) == null) {
             chunks.put(chunkNo, chunk);
             restoredChunks++;
             System.out.println("Received chunk: " + chunkNo);
         }
+    }
+
+    /**
+     * Sends a GETCHUNK request for the multicast control channel (MC) with the following format:
+     * GETCHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+     */
+    public void deliverGetchunkMessage(Message message) {
+        Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED);
+        mailman.startMailmanThread();
+    }
+
+    /**
+     * Sends a CHUNK message for the multicast data restore channel (MDR) with the following format:
+     * CHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> <Body>
+     */
+    public void deliverChunkMessage(Message message) {
+        Mailman mailman = new Mailman(message, peer.getMdr_ip(), peer.getMdr_port(), CHUNK);
+        mailman.startMailmanThread();
     }
 }
