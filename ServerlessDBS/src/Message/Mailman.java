@@ -217,7 +217,7 @@ public class Mailman {
         }
 
         /**
-         * If the peer has the chunk and it hasn't been sent by another peer, it will send it.
+         * If the peer has the chunk and it hasn't been sent by another peer, it will send it
          */
         public void sendChunk() {
             if (peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
