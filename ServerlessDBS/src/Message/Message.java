@@ -3,21 +3,18 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
-import static Utilities.Constants.CR;
-import static Utilities.Constants.LF;
-import static Utilities.Constants.PUTCHUNK;
+import static Utilities.Constants.*;
 
 public class Message {
 
-    Header messageHeader;
-    byte[] body;
+    private Header messageHeader;
+    private byte[] body;
 
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
 
     }
 
-    //STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo){
         messageHeader = new Header(messageType,version, senderId, fileId, chunkNo);
     }
@@ -37,21 +34,21 @@ public class Message {
 
     }
 
-    public void getMessageFromPacket(DatagramPacket packet) throws IOException {
+    private void getMessageFromPacket(DatagramPacket packet) throws IOException {
 
         ByteArrayInputStream message = new ByteArrayInputStream(packet.getData());
 
-        String header="";
+        StringBuilder header= new StringBuilder();
         byte character;
         while((character = (byte)message.read()) != CR) {
-            header += (char) character;
+            header.append((char) character);
         }
 
         if((byte)message.read() != LF || (byte)message.read() != CR || (byte)message.read() != LF){
             throw new IOException("Wrong Header Format.");
         }
 
-        String[] requestHeader = header.split(" ");
+        String[] requestHeader = header.toString().split(" ");
 
         byte[] bodyContent = new byte[packet.getLength()];
 
@@ -98,7 +95,7 @@ public class Message {
 
         byte[] headerBytes = messageHeader.getHeaderString().getBytes();
         byte[] buf;
-        if(protocol.equals(PUTCHUNK)){
+        if(protocol.equals(PUTCHUNK) || protocol.equals(CHUNK)){
             buf = new byte[headerBytes.length + body.length];
             System.arraycopy(headerBytes, 0, buf, 0, headerBytes.length);
             System.arraycopy(body, 0, buf, headerBytes.length, body.length);
@@ -114,10 +111,6 @@ public class Message {
         return messageHeader;
     }
 
-    public void setMessageHeader(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree) {
-        this.messageHeader = new Header(messageType,version, senderId, fileId, chunkNo, replicationDegree);
-    }
-
     public byte[] getBody() {
         return body;
     }
@@ -125,7 +118,6 @@ public class Message {
     public void setBody(byte[] body) {
         this.body = body;
     }
-
 
 
 }

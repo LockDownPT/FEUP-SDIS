@@ -1,22 +1,21 @@
 package Channels;
 
+import Peer.Peer;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import Peer.Peer;
 
 public class Channel {
 
-    int port_number;
-    InetAddress channel_addr;
-    MulticastSocket mc_socket;
-    Thread thread;
-    Peer creator;
+    private MulticastSocket mc_socket;
+    private Thread thread;
+    private Peer peer;
 
-    public Channel(String address, int port, Peer creator) throws IOException {
-        channel_addr = InetAddress.getByName(address);
-        port_number=port;
+    Channel(String address, int port, Peer peer) throws IOException {
+        InetAddress channel_addr = InetAddress.getByName(address);
+        int port_number = port;
 
         System.out.println(address);
         System.out.println(port);
@@ -24,17 +23,17 @@ public class Channel {
         mc_socket = new MulticastSocket(port_number);
         mc_socket.joinGroup(channel_addr);
 
-        this.creator=creator;
+        this.peer = peer;
 
     }
 
-    public DatagramPacket receiveRequests(String protocol) throws IOException {
+    DatagramPacket receiveRequests(String protocol) throws IOException {
 
         byte[] buf;
 
-        if(protocol.equals("BACKUP")){
+        if (protocol.equals("BACKUP") || protocol.equals("RESTORE")) {
             buf = new byte[70000];
-        }else{
+        } else {
             buf = new byte[256];
         }
         DatagramPacket request = new DatagramPacket(buf, buf.length);
@@ -43,12 +42,17 @@ public class Channel {
     }
 
 
-    public void listen(){
+    public void listen() {
         this.thread.start();
 
     }
 
-    public void closeChannel() throws IOException {
-        mc_socket.leaveGroup(channel_addr);
+    void setThread(Thread thread) {
+        this.thread = thread;
     }
+
+    Peer getPeer() {
+        return peer;
+    }
+
 }
