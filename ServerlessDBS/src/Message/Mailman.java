@@ -142,7 +142,7 @@ public class Mailman {
          */
         public void deliverDeleteMessage(){
             for(int i =0; i < 3; i++)
-                deliverMessage(message, mc_addr, mc_port,DELETE);
+                deliverMessage(message, peer.getMc_ip(), peer.getMc_port(),DELETE);
         }
 
         /**

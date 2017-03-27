@@ -24,17 +24,17 @@ public class Delete {
     private String fileId;
     private String version;
 
-    private Peer creator;
+    private Peer peer;
 
 
-    public Delete(String version, String senderId, String file, String addr, int port, Peer creator){
+    public Delete(String version, String senderId, String file, String addr, int port, Peer peer){
         this.fileName = file;
         this.senderId = senderId;
         this.mdb_addr =addr;
         this.mdb_port =port;
         this.version=version;
         this.fileId = null;
-        this.creator=creator;
+        this.peer=peer;
     }
 
 
@@ -42,7 +42,7 @@ public class Delete {
 
         Message request = new Message(DELETE ,version, senderId, fileId);
 
-        Mailman messageHandler = new Mailman(request,senderId,mdb_addr,mdb_port, creator);
+        Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
     }
 
