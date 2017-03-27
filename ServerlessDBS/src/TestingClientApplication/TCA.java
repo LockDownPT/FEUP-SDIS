@@ -46,6 +46,9 @@ class TCA {
             case "STATE":
                 testApplication.state();
                 break;
+            case "DELETE":
+                testApplication.testDelete();
+                break;
             default:
                 System.out.println("WRONG PROTOCOL");
                 break;
@@ -60,6 +63,12 @@ class TCA {
     private void testRestore() throws RemoteException {
         testingPeer.restore(file);
     }
+
+
+    private void testDelete() throws RemoteException {
+        testingPeer.delete(file);
+    }
+
 
     private void state() throws RemoteException
     {

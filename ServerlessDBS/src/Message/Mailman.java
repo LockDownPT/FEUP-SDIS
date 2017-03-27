@@ -2,6 +2,7 @@ package Message;
 
 import Peer.Peer;
 
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -183,7 +184,7 @@ public class Mailman {
                     saveChunk();
                     break;
                 case DELETE:
-                    //creator.deleteChunks(message.getMessageHeader().getFileId());
+                    deleteChunks(message.getMessageHeader().getFileId());
                     break;
                 default:
                     break;
@@ -263,5 +264,27 @@ public class Mailman {
         }
 
     }
+
+    private void deleteChunks(String fileId) {
+
+        String path = "./"+peer.getPeerId()+"/"+fileId;
+        File file = new File(path);
+        deleteFolder(file);
+    }
+
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+
 
 }

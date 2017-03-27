@@ -11,5 +11,7 @@ public interface PeerInterface extends Remote {
 
     void restore(String file) throws RemoteException;
 
+    void delete(String file) throws RemoteException;
+
     void state() throws RemoteException;
 }

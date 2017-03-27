@@ -118,7 +118,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public void delete(String file){
 
         //Starts backup protocol
-        Delete delete = new Delete(version,peerId, file, mdb_ip, mdb_port, this);
+        Delete delete = new Delete(file, this);
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
         delete.deleteChunks();
