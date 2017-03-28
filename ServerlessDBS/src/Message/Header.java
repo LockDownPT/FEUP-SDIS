@@ -32,7 +32,8 @@ public class Header {
         this.chunkNo = ChunkNo.trim();
 
     }
-    public Header(String MessageType, String Version, String SenderId, String FileId){
+
+    public Header(String MessageType, String Version, String SenderId, String FileId) {
 
         this.messageType = MessageType.trim();
         this.version = Version.trim();

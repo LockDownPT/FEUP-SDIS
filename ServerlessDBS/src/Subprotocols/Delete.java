@@ -5,11 +5,10 @@ import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
 
-import java.io.*;
+import java.io.File;
 import java.text.SimpleDateFormat;
 
 import static Utilities.Constants.DELETE;
-import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 
 public class Delete {
@@ -19,9 +18,9 @@ public class Delete {
 
     private Peer peer;
 
-    public Delete(String file, Peer peer){
+    public Delete(String file, Peer peer) {
         this.fileName = file;
-        this.peer=peer;
+        this.peer = peer;
         this.fileId = getFileId();
     }
 
@@ -43,7 +42,6 @@ public class Delete {
         messageHandler.startMailmanThread();
     }
 
-
     public void updateRepDeg1() {
 
 
@@ -56,10 +54,10 @@ public class Delete {
 
     public void deleteChunks(String fileId) {
 
-        String path = "./"+peer.getPeerId()+"/"+fileId;
+        String path = "./" + peer.getPeerId() + "/" + fileId;
         File file = new File(path);
         deleteFolder(file);
-        if(peer.getDeleteProtocol() != null)
+        if (peer.getDeleteProtocol() != null)
             peer.getDeleteProtocol().updateRepDeg1();
     }
 
@@ -80,9 +78,9 @@ public class Delete {
     /**
      *
      */
-    public void deliverDeleteMessage(Message message){
-        for(int i =0; i < 3; i++){
-            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(),DELETE);
+    public void deliverDeleteMessage(Message message) {
+        for (int i = 0; i < 3; i++) {
+            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETE, peer);
             mailman.startMailmanThread();
         }
     }

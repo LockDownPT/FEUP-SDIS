@@ -34,7 +34,7 @@ public class Backup {
     }
 
 
-    private void sendChunk(byte[] chunk, int chunkNo) {
+    public void sendChunk(byte[] chunk, int chunkNo) {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
@@ -46,43 +46,44 @@ public class Backup {
     }
 
     /**
-     * If the peer doesn't have the chunk, it will store it inside it's "disk" and send a STORED
-     * message for the sender
+     * If the peer doesn't have the chunk and it has enough space,
+     * it will store the chunk and send a STORED message for the sender
      */
     public void storeChunk(Message message) {
         if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-            OutputStream output = null;
-            try {
-                //Creates sub folders structure -> peerId/FileId/ChunkNo
-                File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                outFile.getParentFile().mkdirs();
-                outFile.createNewFile();
-                output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                assert output != null;
-                output.write(message.getBody(), 0, message.getBody().length);
-                peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+            long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
+            if (availableSpace > message.getBody().length) {
+                OutputStream output = null;
                 try {
-                    peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                    Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                    Mailman sendStored = new Mailman(stored, peer);
-                    sendStored.startMailmanThread();
-
-                    assert output != null;
-                    output.close();
+                    //Creates sub folders structure -> peerId/FileId/ChunkNo
+                    File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                    outFile.getParentFile().mkdirs();
+                    outFile.createNewFile();
+                    output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                try {
+                    assert output != null;
+                    output.write(message.getBody(), 0, message.getBody().length);
+                    peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
+                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        Mailman sendStored = new Mailman(stored, peer);
+                        sendStored.startMailmanThread();
+                        assert output != null;
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
-
     }
 
     /**
@@ -111,7 +112,7 @@ public class Backup {
      */
     public void deliverPutchunkMessage(Message message) {
 
-        Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
+        Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
         mailman.startMailmanThread();
 
         int repDeg = 0;
@@ -147,7 +148,7 @@ public class Backup {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED);
+            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED, peer);
             mailman.startMailmanThread();
         }
 
@@ -160,7 +161,7 @@ public class Backup {
      */
     public void deliverStoredMessageEnhanced(Message message) {
 
-        Mailman mailman = new Mailman(message, getPeer().getMc_ip(), getPeer().getMc_port(), STORED);
+        Mailman mailman = new Mailman(message, getPeer().getMc_ip(), getPeer().getMc_port(), STORED, peer);
         mailman.startMailmanThread();
 
     }
@@ -170,7 +171,7 @@ public class Backup {
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
-            String path = "./src/TestFiles/" + fileName; // windows
+            String path = "./" + "TestFiles/" + fileName; // windows
             File file = new File(path);
 
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");

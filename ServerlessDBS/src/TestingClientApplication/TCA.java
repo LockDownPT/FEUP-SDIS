@@ -12,17 +12,25 @@ class TCA {
     private String file;
     private int replicationDegree;
     private PeerInterface testingPeer;
+    private int spaceReclaimValue;
 
     private TCA(String[] args) {
 
         String peerAccessPoint = args[0];
         String protocol = args[1];
-        if (!"STATE".equals(protocol)) {
-            file = args[2];
-        }
-        if ("BACKUP".equals(protocol))
-            replicationDegree = Integer.parseInt(args[3]);
 
+        switch (protocol) {
+            case "BACKUP":
+                replicationDegree = Integer.parseInt(args[3]);
+            case "RESTORE":
+                file = args[2];
+                break;
+            case "SPACERECLAIM":
+                spaceReclaimValue = Integer.parseInt(args[2]);
+                break;
+            default:
+                break;
+        }
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
             testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
@@ -49,6 +57,9 @@ class TCA {
             case "DELETE":
                 testApplication.testDelete();
                 break;
+            case "SPACERECLAIM":
+                testApplication.spaceReclaim();
+                break;
             default:
                 System.out.println("WRONG PROTOCOL");
                 break;
@@ -69,6 +80,9 @@ class TCA {
         testingPeer.delete(file);
     }
 
+    private void spaceReclaim() throws RemoteException {
+        testingPeer.spaceReclaim(spaceReclaimValue);
+    }
 
     private void state() throws RemoteException {
         testingPeer.state();
