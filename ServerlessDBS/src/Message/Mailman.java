@@ -100,7 +100,7 @@ public class Mailman {
                     peer.getRestoreProtocol().deliverChunkMessage(message);
                     break;
                 case DELETE:
-                    deliverDeleteMessage();
+                    peer.getDeleteProtocol().deliverDeleteMessage(message);
                     break;
                 case REMOVED:
                     peer.getSpaceReclaimProtocol().deliverRemovedMessage(message);
@@ -108,15 +108,6 @@ public class Mailman {
                 default:
                     break;
             }
-        }
-
-
-        /**
-         *
-         */
-        public void deliverDeleteMessage(){
-            for(int i =0; i < 3; i++)
-                deliverMessage(message, peer.getMc_ip(), peer.getMc_port(),DELETE);
         }
 
     }
@@ -147,35 +138,12 @@ public class Mailman {
                     peer.getSpaceReclaimProtocol().updateChunkRepDegree(message);
                     break;
                 case DELETE:
-                    deleteChunks(message.getMessageHeader().getFileId());
+                    peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
                     break;
                 default:
                     break;
             }
         }
-    }
-
-    private void deleteChunks(String fileId) {
-
-        String path = "./"+peer.getPeerId()+"/"+fileId;
-        File file = new File(path);
-        deleteFolder(file);
-        if(peer.getDeleteProtocol() != null)
-        peer.getDeleteProtocol().updateRepDeg1();
-    }
-
-    public static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
-                if(f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
-        }
-        folder.delete();
     }
 
 

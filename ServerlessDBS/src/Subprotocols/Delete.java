@@ -9,6 +9,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 
 import static Utilities.Constants.DELETE;
+import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 
 public class Delete {
@@ -51,6 +52,39 @@ public class Delete {
 
     public void deleteLine(String path, String hash) {
         peer.saveRepDegInfoToDisk();
+    }
+
+    public void deleteChunks(String fileId) {
+
+        String path = "./"+peer.getPeerId()+"/"+fileId;
+        File file = new File(path);
+        deleteFolder(file);
+        if(peer.getDeleteProtocol() != null)
+            peer.getDeleteProtocol().updateRepDeg1();
+    }
+
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+
+    /**
+     *
+     */
+    public void deliverDeleteMessage(Message message){
+        for(int i =0; i < 3; i++){
+            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(),DELETE);
+            mailman.startMailmanThread();
+        }
     }
 
 
