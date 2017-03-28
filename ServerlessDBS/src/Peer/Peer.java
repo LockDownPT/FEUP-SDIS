@@ -91,9 +91,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
 
         this.backup = new Backup(this);
-
-
-        restoreProtocol = new Restore(this);
+        this.restoreProtocol = new Restore(this);
+        this.deleteProtocol = new Delete(this);
     }
 
     /***
@@ -157,9 +156,21 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public void updateRepDeg(String hash){
-        storedChunks.remove(hash);
-        chunksReplicationDegree.remove(hash);
+    public void updateRepDeg(String fileId){
+        for (Map.Entry<String, String[]> entry : mapChunkIdToFileAndChunkNo.entrySet()) {
+            String key = entry.getKey();
+            String[] value = entry.getValue();
+
+            if (value[0] == fileId) {
+                storedChunks.remove(key);
+                chunksReplicationDegree.remove(key);
+                mapChunkIdToFileAndChunkNo.remove(key);
+            }
+            chunksReplicationDegree.put(key,"0");
+
+        }
+
+        saveRepDegInfoToDisk();
 
     }
 

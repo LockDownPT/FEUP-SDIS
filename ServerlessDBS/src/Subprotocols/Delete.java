@@ -18,12 +18,15 @@ public class Delete {
     private String fileId;
 
     private Peer peer;
-    private int numberOfChunks = 0;
 
     public Delete(String file, Peer peer){
         this.fileName = file;
         this.peer=peer;
         this.fileId = getFileId();
+    }
+
+    public Delete(Peer peer){
+        this.peer=peer;
     }
 
     public String getFileId(){
@@ -35,24 +38,21 @@ public class Delete {
     }
 
     public void deleteChunks() {
-        Message request = new Message(DELETE ,peer.getVersion(), peer.getPeerId(),fileId );
+        Message request = new Message(DELETE ,peer.getVersion(), peer.getPeerId(),this.fileId );
         Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
     }
 
 
     public void updateRepDeg1() {
-        for(int i = 1; i <= this.numberOfChunks; i++ ){
-            String temp = ""+this.fileId+i;
-            this.peer.updateRepDeg(temp);
-            String path = "./"+peer.getPeerId()+"/"+"chunksRepDeg.properties";
-            deleteLine(path,temp);
-        }
-    }
 
-    public void deleteLine(String path, String hash) {
-        peer.saveRepDegInfoToDisk();
-    }
+
+            this.peer.updateRepDeg(fileId);
+            //this.peer.saveRepDegInfoToDisk();
+
+            }
+
+
 
     public void deleteChunks(String fileId) {
 
@@ -63,7 +63,7 @@ public class Delete {
             peer.getDeleteProtocol().updateRepDeg1();
     }
 
-    public static void deleteFolder(File folder) {
+    public  void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if(files!=null) { //some JVMs return null for empty dirs
             for(File f: files) {
