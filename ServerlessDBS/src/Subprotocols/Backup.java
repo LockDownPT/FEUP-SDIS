@@ -169,7 +169,8 @@ public class Backup {
         int chunkNo = 0;
         try {
             long maxSizeChunk = 64 * 1000;
-            String path = "./TestFiles/" + fileName;
+            //String path = "./TestFiles/" + fileName; linux
+            String path = "./src/TestFiles/" + fileName; // windows
             File file = new File(path);
 
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");

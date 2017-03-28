@@ -5,6 +5,7 @@ import Channels.MDB;
 import Channels.MDR;
 import Subprotocols.Backup;
 import Subprotocols.Restore;
+import Subprotocols.Delete;
 import Subprotocols.SpaceReclaim;
 
 import java.io.File;
@@ -22,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
+    private Delete deleteProtocol = null;
     private Backup backup = null;
     private SpaceReclaim spaceReclaimProtocol = null;
     private Map<String, Backup> backupProtocol = new ConcurrentHashMap<>();
@@ -111,7 +113,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         backupProtocol.put(backup.getFileId(), backup);
 
         System.out.println("Finished Reading Chunks");
-
     }
 
     /**
@@ -134,6 +135,31 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         spaceReclaimProtocol = new SpaceReclaim(this, spaceToBeReclaimed);
 
         spaceReclaimProtocol.start();
+
+    }
+
+
+
+    /***
+     * Starts delete protocol
+     * @param file
+     */
+    public void delete(String file){
+
+        //Starts delete protocol
+        deleteProtocol = new Delete(file, this);
+
+
+        deleteProtocol.deleteChunks();
+
+
+        System.out.println("Finished Reading Chunks");
+
+    }
+
+    public void updateRD(String hash){
+        storedChunks.remove(hash);
+        chunksReplicationDegree.remove(hash);
 
     }
 
@@ -452,6 +478,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     public String getVersion() {
         return version;
+    }
+
+    public Delete getDeleteProtocol() {
+        return deleteProtocol;
     }
 
 }

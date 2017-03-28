@@ -64,7 +64,7 @@ public class Restore {
 
     private void getFileInfo() {
         long maxSizeChunk = 64 * 1000;
-        String path = "./TestFiles/" + fileName;
+        String path = "./src/TestFiles/" + fileName;
         File file = new File(path);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");

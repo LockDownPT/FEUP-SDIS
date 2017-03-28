@@ -98,6 +98,8 @@ public class Mailman {
                 case CHUNK:
                     peer.getRestoreProtocol().deliverChunkMessage(message);
                     break;
+                case DELETE:
+                    deliverDeleteMessage();
                 case REMOVED:
                     peer.getSpaceReclaimProtocol().deliverRemovedMessage(message);
                     break;
@@ -105,6 +107,80 @@ public class Mailman {
                     break;
             }
         }
+
+        /**
+         * Sends PUTCHUNK request for the multicast backup channel (MDB) with the following format:
+         * PUTCHUNK <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
+         * Then waits one second and checks if the desired replication degree
+         * has been accomplished. Otherwise it resends the PUTCHUNK request, a maximum of 5 times.
+         */
+        public void deliverPutchunkMessage() {
+
+            deliverMessage(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
+
+            int repDeg = 0;
+            int numberOfTries = 0;
+            while (repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg()) && numberOfTries < 5) {
+                try {
+                    Thread.sleep((long) (Math.random() * 1000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    repDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    if (repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg()))
+                        deliverMessage(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
+                    numberOfTries++;
+                    System.out.println("Tentativa: " + numberOfTries);
+                    System.out.println("RepDeg: " + repDeg);
+                }
+            }
+            if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
+                System.out.println("Replication degree not achived");
+            }
+        }
+
+        /**
+         * A peer that stores the chunk upon receiving the PUTCHUNK message, replies by sending
+         * on the multicast control channel (MC) a confirmation message with the following format:
+         * STORED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+         * after a random delay uniformly distributed between 0 and 400 ms
+         */
+        public void deliverStoredMessage() {
+            try {
+                Thread.sleep((long) (Math.random() * 400));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                deliverMessage(message, peer.getMc_ip(), peer.getMc_port(), STORED);
+            }
+
+        }
+
+
+        /**
+         *
+         */
+        public void deliverDeleteMessage(){
+            for(int i =0; i < 3; i++)
+                deliverMessage(message, peer.getMc_ip(), peer.getMc_port(),DELETE);
+        }
+
+        /**
+         * Sends a GETCHUNK request for the multicast control channel (MC) with the following format:
+         * GETCHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
+         */
+        public void deliverGetchunkMessage() {
+            deliverMessage(message, peer.getMc_ip(), peer.getMc_port(), STORED);
+        }
+
+        /**
+         * Sends a CHUNK message for the multicast data restore channel (MDR) with the following format:
+         * CHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> <Body>
+         */
+        public void deliverChunkMessage() {
+            deliverMessage(message, peer.getMdr_ip(), peer.getMdr_port(), CHUNK);
+        }
+
     }
 
     public class ReceiverThread extends Thread {
@@ -132,9 +208,39 @@ public class Mailman {
                 case REMOVED:
                     peer.getSpaceReclaimProtocol().updateChunkRepDegree(message);
                     break;
+                case DELETE:
+                    deleteChunks(message.getMessageHeader().getFileId());
+                    break;
                 default:
                     break;
             }
         }
     }
+
+    private void deleteChunks(String fileId) {
+
+        String path = "./"+peer.getPeerId()+"/"+fileId;
+        File file = new File(path);
+        deleteFolder(file);
+        if(peer.getDeleteProtocol() != null)
+        peer.getDeleteProtocol().updateRD1();
+    }
+
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+
+
+
+
 }
