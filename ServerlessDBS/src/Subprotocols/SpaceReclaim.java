@@ -31,8 +31,11 @@ public class SpaceReclaim {
         long freeSpace = storageSpace - usedSpace;
 
         if ((freeSpace - this.spaceToBeReduced) > 0) {
-            peer.setUsedSpace(storageSpace - spaceToBeReduced);
+            peer.setStorageSpace(storageSpace - spaceToBeReduced);
             return false;
+        }else{
+            peer.setStorageSpace(storageSpace - spaceToBeReduced);
+            spaceToBeReduced-=freeSpace;
         }
         return true;
     }
@@ -108,7 +111,7 @@ public class SpaceReclaim {
             return false;
         }
 
-        peer.setStorageSpace(peer.getStorageSpace()-chunkSize);
+        peer.setUsedSpace(peer.getUsedSpace()-chunkSize);
         this.spaceToBeReduced-=chunkSize;
 
         return true;

@@ -117,7 +117,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Starts restore protocol
-     *
      * @param file file to be restored
      */
     public void restore(String file) {
@@ -130,12 +129,15 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+    /**
+     * Starts space reclaim protocol which tries to free an given amount of space
+     * if the amount of space is bigger than the disk space, it frees the whole
+     * disk
+     * @param spaceToBeReclaimed amount of space to claim
+     */
     public void spaceReclaim(long spaceToBeReclaimed){
-
         spaceReclaimProtocol = new SpaceReclaim(this, spaceToBeReclaimed);
-
         spaceReclaimProtocol.start();
-
     }
 
 
