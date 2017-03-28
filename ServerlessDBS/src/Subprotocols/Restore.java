@@ -62,7 +62,7 @@ public class Restore {
 
     }
 
-    private void getFileInfo() {
+    public void getFileInfo() {
         long maxSizeChunk = 64 * 1000;
         String path = "./src/TestFiles/" + fileName;
         File file = new File(path);

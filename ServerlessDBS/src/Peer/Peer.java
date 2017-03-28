@@ -157,7 +157,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public void updateRD(String hash){
+    public void updateRepDeg(String hash){
         storedChunks.remove(hash);
         chunksReplicationDegree.remove(hash);
 
@@ -274,7 +274,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     /**
      * Saves information about chunks replication degree to non-volatile memory
      */
-    private void saveRepDegInfoToDisk() {
+    public void saveRepDegInfoToDisk() {
         Properties properties = new Properties();
 
         properties.putAll(chunksReplicationDegree);

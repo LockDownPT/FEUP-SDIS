@@ -4,15 +4,11 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
-import Utilities.Utilities;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
-import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 
 import static Utilities.Constants.DELETE;
-import static Utilities.Constants.PUTCHUNK;
 import static Utilities.Utilities.createHash;
 
 public class Delete {
@@ -26,41 +22,28 @@ public class Delete {
     public Delete(String file, Peer peer){
         this.fileName = file;
         this.peer=peer;
+        this.fileId = getFileId();
     }
 
-    private void getFileId() {
-        long maxSizeChunk = 64 * 1000;
+    public String getFileId(){
         String path = "./src/TestFiles/" + fileName;
         File file = new File(path);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        this.fileId = createHash(fileName + sdf.format(file.lastModified()));
-        RandomAccessFile fileRaf;
-        try {
-            fileRaf = new RandomAccessFile(file, "r");
-            long fileLength = fileRaf.length();
-            this.numberOfChunks = (int) (fileLength / maxSizeChunk) + 1;
-            int lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Number of chunks: " + this.numberOfChunks);
+        return createHash(fileName + sdf.format(file.lastModified()));
     }
 
-
     public void deleteChunks() {
-        getFileId();
-        Message request = new Message(DELETE ,peer.getVersion(), peer.getPeerId(),this.fileId );
+        Message request = new Message(DELETE ,peer.getVersion(), peer.getPeerId(),fileId );
         Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
     }
 
 
-    public void updateRD1() {
-        getFileId();
+    public void updateRepDeg1() {
         for(int i = 1; i <= this.numberOfChunks; i++ ){
             String temp = ""+this.fileId+i;
-            this.peer.updateRD(temp);
+            this.peer.updateRepDeg(temp);
             String path = "./"+peer.getPeerId()+"/"+"chunksRepDeg.properties";
             deleteLine(path,temp);
         }
