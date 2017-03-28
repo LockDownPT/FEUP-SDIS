@@ -160,14 +160,16 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         for (Map.Entry<String, String[]> entry : mapChunkIdToFileAndChunkNo.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
-
+            String degree;
+            degree = chunksReplicationDegree.get(key);
+            String key2 = ""+value[0]+value[1];
             if (value[0] == fileId) {
-                storedChunks.remove(key);
-                chunksReplicationDegree.remove(key);
-                mapChunkIdToFileAndChunkNo.remove(key);
-            }
-            chunksReplicationDegree.put(key,"0");
+                storedChunks.remove(key2);
+                degree = "0";
+                mapChunkIdToFileAndChunkNo.remove(key2);
 
+            }
+            chunksReplicationDegree.replace(key2,"0");
         }
 
         saveRepDegInfoToDisk();
