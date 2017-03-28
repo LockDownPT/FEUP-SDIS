@@ -5,6 +5,7 @@ import Channels.MDB;
 import Channels.MDR;
 import Subprotocols.Backup;
 import Subprotocols.Restore;
+import Subprotocols.SpaceReclaim;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -23,17 +23,27 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
     private Backup backup = null;
+    private SpaceReclaim spaceReclaimProtocol = null;
     private Map<String, Backup> backupProtocol = new ConcurrentHashMap<>();
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
     private String version;
     private long usedSpace = 0;
+    private long diskSpace = 5*64000;
+
+    /**
+     * String is the chunkId = fileId+ChunkNo
+     * String array has in the first element the fileId and in the second the ChunkNo
+     */
+    private Map<String, String[]> mapChunkIdToFileAndChunkNo = new ConcurrentHashMap<>();
     /**
      * String is a par of fileId+chunkNo
      * String holds the desired replication degree
      */
     private Map<String, String> storedChunks = new ConcurrentHashMap<>();
+
+    //TODO: MAke this a tree map
     /**
      * Holds information about chunks replication degree in the network
      * String is a par of fileId+chunkNo
@@ -119,6 +129,14 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+    public void spaceReclaim(long spaceToBeReclaimed){
+
+        spaceReclaimProtocol = new SpaceReclaim(this, spaceToBeReclaimed);
+
+        spaceReclaimProtocol.start();
+
+    }
+
     /**
      * This operation allows to observe the service state. In response to such a request, the peer shall send to the client the following information:
      * For each file whose backup it has initiated:
@@ -183,6 +201,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public void addChunkToRegistry(String fileId, String chunkNo, String desiredReplicationDegree) {
 
         this.storedChunks.put(fileId + chunkNo, desiredReplicationDegree);
+        this.addChunkIdToRegistry(fileId,chunkNo);
 
     }
 
@@ -191,23 +210,40 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      *
      * @param fileId
      */
-    public void increaseReplicationDegree(String fileId) {
-
-        String currentReplicationDegree = chunksReplicationDegree.get(fileId);
+    public void increaseReplicationDegree(String fileId, String chunkNo) {
+        String chunkId=fileId+chunkNo;
+        addChunkIdToRegistry(fileId,chunkNo);
+        String currentReplicationDegree = chunksReplicationDegree.get(chunkId);
 
         if (currentReplicationDegree == null) {
-            chunksReplicationDegree.put(fileId, "1");
+            chunksReplicationDegree.put(chunkId, "1");
             //System.out.println("Replication degree of: "+fileId);
             //System.out.println("1");
         } else {
             int temp = Integer.parseInt(currentReplicationDegree);
-            chunksReplicationDegree.put(fileId, String.valueOf(temp + 1));
+            chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
             //System.out.println("Replication degree of: "+fileId);
             //System.out.println(String.valueOf(temp+1));
         }
 
         saveRepDegInfoToDisk();
     }
+    /**
+     * Decreases registry about the number of times a chunk has been replicated
+     *
+     * @param fileId
+     */
+    public void decreaseReplicationDegree(String fileId, String chunkNo) {
+        String chunkId=fileId+chunkNo;
+        String currentReplicationDegree = chunksReplicationDegree.get(chunkId);
+
+        if (currentReplicationDegree != null) {
+            int temp = Integer.parseInt(currentReplicationDegree);
+            chunksReplicationDegree.put(chunkId, String.valueOf(temp - 1));
+        }
+        saveRepDegInfoToDisk();
+    }
+
 
     /**
      * Saves information about chunks replication degree to non-volatile memory
@@ -259,6 +295,21 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             return 0;
         }
     }
+    /**
+     * Check the replication degree of a certain chunk
+     *
+     * @param key  Id of the file + chunkNo
+     * @return returns the replication degree of the chunk
+     */
+    public int getReplicationDegreeOfChunk(String key) {
+
+        if (chunksReplicationDegree.get(key) != null) {
+            return Integer.parseInt(chunksReplicationDegree.get(key));
+        } else {
+            return 0;
+        }
+    }
+
 
     /**
      * Verifies if the peer has this chunk
@@ -316,8 +367,43 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+    public Map<String, String> getStoredChunks() {
+        return storedChunks;
+    }
+
+    public void setStoredChunks(Map<String, String> storedChunks) {
+        this.storedChunks = storedChunks;
+    }
+
+    public Map<String, String> getChunksReplicationDegree() {
+        return chunksReplicationDegree;
+    }
+
+    public SpaceReclaim getSpaceReclaimProtocol() {
+        return spaceReclaimProtocol;
+    }
+
+    public void setSpaceReclaimProtocol(SpaceReclaim spaceReclaimProtocol) {
+        this.spaceReclaimProtocol = spaceReclaimProtocol;
+    }
+
+    public void addChunkIdToRegistry(String fileId, String chunkNo){
+        String[] parFileIdChunkNo = new String[2];
+        parFileIdChunkNo[0]=fileId;
+        parFileIdChunkNo[1]=chunkNo;
+        this.mapChunkIdToFileAndChunkNo.put(fileId+chunkNo,parFileIdChunkNo);
+    }
+    
+    public String getFileIdFromChunkId(String chunkId){
+        return mapChunkIdToFileAndChunkNo.get(chunkId)[0];
+    }
+
+    public String getChunkNoFromChunkId(String chunkId){
+        return mapChunkIdToFileAndChunkNo.get(chunkId)[1];
+    }
+
     private long getStorageSpace() {
-        return (long) 0;
+        return this.diskSpace;
     }
 
     public Backup getBackup() {

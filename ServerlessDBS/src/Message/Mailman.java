@@ -98,6 +98,9 @@ public class Mailman {
                 case CHUNK:
                     peer.getRestoreProtocol().deliverChunkMessage(message);
                     break;
+                case REMOVED:
+                    peer.getSpaceReclaimProtocol().deliverRemovedMessage(message);
+                    break;
                 default:
                     break;
             }
@@ -118,13 +121,16 @@ public class Mailman {
                         peer.getBackup().storeChunkEnhanced(message);
                     break;
                 case STORED:
-                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
+                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     break;
                 case GETCHUNK:
                     peer.getRestoreProtocol().sendChunk(message);
                     break;
                 case CHUNK:
                     peer.getRestoreProtocol().saveChunk(message);
+                    break;
+                case REMOVED:
+                    peer.getSpaceReclaimProtocol().updateChunkRepDegree(message);
                     break;
                 default:
                     break;
