@@ -19,9 +19,10 @@ public class Message {
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo) {
         messageHeader = new Header(messageType, version, senderId, fileId, chunkNo);
     }
+
     //DELETE <Version> <SenderId> <FileId> <CRLF><CRLF>
-    public Message(String messageType, String version, String senderId, String fileId){
-        messageHeader = new Header(messageType,version, senderId, fileId);
+    public Message(String messageType, String version, String senderId, String fileId) {
+        messageHeader = new Header(messageType, version, senderId, fileId);
     }
 
     public Message(DatagramPacket packet) {
@@ -51,10 +52,8 @@ public class Message {
 
         String[] requestHeader = header.toString().split(" ");
 
-        byte[] bodyContent = new byte[packet.getLength()];
-
         messageHeader.setMessageType(requestHeader[0]);
-
+        byte[] bodyContent;
         switch (messageHeader.getMessageType()) {
             case "PUTCHUNK":
                 messageHeader.setVersion(requestHeader[1]);
@@ -62,6 +61,7 @@ public class Message {
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
                 messageHeader.setReplicationDeg(requestHeader[5]);
+                bodyContent = new byte[packet.getLength()-header.length()-4];
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;
@@ -78,6 +78,7 @@ public class Message {
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
+                bodyContent = new byte[packet.getLength()-header.length()-4];
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;

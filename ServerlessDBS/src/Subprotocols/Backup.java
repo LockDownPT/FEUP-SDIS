@@ -51,8 +51,8 @@ public class Backup {
      */
     public void storeChunk(Message message) {
         if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-            long availableSpace = peer.getStorageSpace()-peer.getUsedSpace();
-            if(availableSpace>message.getBody().length){
+            long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
+            if (availableSpace > message.getBody().length) {
                 OutputStream output = null;
                 try {
                     //Creates sub folders structure -> peerId/FileId/ChunkNo
@@ -112,7 +112,7 @@ public class Backup {
      */
     public void deliverPutchunkMessage(Message message) {
 
-        Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK);
+        Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
         mailman.startMailmanThread();
 
         int repDeg = 0;
@@ -148,7 +148,7 @@ public class Backup {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED);
+            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED, peer);
             mailman.startMailmanThread();
         }
 
@@ -161,7 +161,7 @@ public class Backup {
      */
     public void deliverStoredMessageEnhanced(Message message) {
 
-        Mailman mailman = new Mailman(message, getPeer().getMc_ip(), getPeer().getMc_port(), STORED);
+        Mailman mailman = new Mailman(message, getPeer().getMc_ip(), getPeer().getMc_port(), STORED, peer);
         mailman.startMailmanThread();
 
     }
@@ -171,7 +171,7 @@ public class Backup {
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
-            String path = "./src/TestFiles/" + fileName; // windows
+            String path = "./" + "TestFiles/" + fileName; // windows
             File file = new File(path);
 
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");

@@ -4,8 +4,8 @@ import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
 import Subprotocols.Backup;
-import Subprotocols.Restore;
 import Subprotocols.Delete;
+import Subprotocols.Restore;
 import Subprotocols.SpaceReclaim;
 
 import java.io.File;
@@ -16,8 +16,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class Peer extends UnicastRemoteObject implements PeerInterface {
@@ -31,8 +34,11 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
     private String version;
-    private long usedSpace = 0;
-    private long diskSpace = 4*64000;
+    private int usedSpace = 0;
+    private int diskSpace = 150 * 64000;
+    private ExecutorService senderExecutor;
+    private ExecutorService receiverExecutor;
+    private ExecutorService deliverExecutor;
 
     /**
      * String is the chunkId = fileId+ChunkNo
@@ -69,6 +75,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         this.mdb_port = mdb_port;
         this.mdr_ip = mdr_ip;
         this.mdr_port = mdr_port;
+        senderExecutor = Executors.newFixedThreadPool(5);
+        deliverExecutor = Executors.newFixedThreadPool(10);
+        receiverExecutor = Executors.newFixedThreadPool(5);
 
         MDB backupChannel = new MDB(mdb_ip, mdb_port, this);
         MDR restoreChannel = new MDR(mdr_ip, mdr_port, this);
@@ -88,10 +97,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         controlChannel.listen();
 
 
-        this.backup = new Backup(this);
-
-
+        backup = new Backup(this);
         restoreProtocol = new Restore(this);
+        deleteProtocol = new Delete(this);
+        spaceReclaimProtocol = new SpaceReclaim(this);
     }
 
     /***
@@ -115,6 +124,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Starts restore protocol
+     *
      * @param file file to be restored
      */
     public void restore(String file) {
@@ -131,20 +141,20 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      * Starts space reclaim protocol which tries to free an given amount of space
      * if the amount of space is bigger than the disk space, it frees the whole
      * disk
+     *
      * @param spaceToBeReclaimed amount of space to claim
      */
-    public void spaceReclaim(long spaceToBeReclaimed){
+    public void spaceReclaim(int spaceToBeReclaimed) {
         spaceReclaimProtocol = new SpaceReclaim(this, spaceToBeReclaimed);
         spaceReclaimProtocol.start();
     }
-
 
 
     /***
      * Starts delete protocol
      * @param file
      */
-    public void delete(String file){
+    public void delete(String file) {
 
         //Starts delete protocol
         deleteProtocol = new Delete(file, this);
@@ -157,7 +167,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public void updateRepDeg(String hash){
+    public void updateRepDeg(String hash) {
         storedChunks.remove(hash);
         chunksReplicationDegree.remove(hash);
 
@@ -227,7 +237,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public void addChunkToRegistry(String fileId, String chunkNo, String desiredReplicationDegree) {
 
         this.storedChunks.put(fileId + chunkNo, desiredReplicationDegree);
-        this.addChunkIdToRegistry(fileId,chunkNo);
+        this.addChunkIdToRegistry(fileId, chunkNo);
 
     }
 
@@ -237,30 +247,27 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      * @param fileId
      */
     public void increaseReplicationDegree(String fileId, String chunkNo) {
-        String chunkId=fileId+chunkNo;
-        addChunkIdToRegistry(fileId,chunkNo);
+        String chunkId = fileId + chunkNo;
+        addChunkIdToRegistry(fileId, chunkNo);
         String currentReplicationDegree = chunksReplicationDegree.get(chunkId);
 
         if (currentReplicationDegree == null) {
             chunksReplicationDegree.put(chunkId, "1");
-            //System.out.println("Replication degree of: "+fileId);
-            //System.out.println("1");
         } else {
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
-            //System.out.println("Replication degree of: "+fileId);
-            //System.out.println(String.valueOf(temp+1));
         }
 
         saveRepDegInfoToDisk();
     }
+
     /**
      * Decreases registry about the number of times a chunk has been replicated
      *
      * @param fileId
      */
     public void decreaseReplicationDegree(String fileId, String chunkNo) {
-        String chunkId=fileId+chunkNo;
+        String chunkId = fileId + chunkNo;
         String currentReplicationDegree = chunksReplicationDegree.get(chunkId);
 
         if (currentReplicationDegree != null) {
@@ -321,10 +328,11 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             return 0;
         }
     }
+
     /**
      * Check the replication degree of a certain chunk
      *
-     * @param key  Id of the file + chunkNo
+     * @param key Id of the file + chunkNo
      * @return returns the replication degree of the chunk
      */
     public int getReplicationDegreeOfChunk(String key) {
@@ -336,7 +344,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         }
     }
 
-    public int getDesiredReplicationDegree(String key){
+    public int getDesiredReplicationDegree(String key) {
         return Integer.parseInt(storedChunks.get(key));
     }
 
@@ -401,54 +409,50 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return storedChunks;
     }
 
-    public void setStoredChunks(Map<String, String> storedChunks) {
-        this.storedChunks = storedChunks;
-    }
-
-    public Map<String, String> getChunksReplicationDegree() {
-        return chunksReplicationDegree;
-    }
-
     public SpaceReclaim getSpaceReclaimProtocol() {
         return spaceReclaimProtocol;
     }
 
-    public void setSpaceReclaimProtocol(SpaceReclaim spaceReclaimProtocol) {
-        this.spaceReclaimProtocol = spaceReclaimProtocol;
+    public void addChunkIdToRegistry(String fileId, String chunkNo) {
+        String[] parFileIdChunkNo = new String[2];
+        parFileIdChunkNo[0] = fileId;
+        parFileIdChunkNo[1] = chunkNo;
+        this.mapChunkIdToFileAndChunkNo.put(fileId + chunkNo, parFileIdChunkNo);
     }
 
-    public void addChunkIdToRegistry(String fileId, String chunkNo){
-        String[] parFileIdChunkNo = new String[2];
-        parFileIdChunkNo[0]=fileId;
-        parFileIdChunkNo[1]=chunkNo;
-        this.mapChunkIdToFileAndChunkNo.put(fileId+chunkNo,parFileIdChunkNo);
+    public ExecutorService getReceiverExecutor() {
+        return receiverExecutor;
     }
-    
-    public String getFileIdFromChunkId(String chunkId){
+
+    public ExecutorService getSenderExecutor() { return senderExecutor;}
+
+    public ExecutorService getDeliverExecutor() {return deliverExecutor;}
+
+    public String getFileIdFromChunkId(String chunkId) {
         return mapChunkIdToFileAndChunkNo.get(chunkId)[0];
     }
 
-    public String getChunkNoFromChunkId(String chunkId){
+    public String getChunkNoFromChunkId(String chunkId) {
         return mapChunkIdToFileAndChunkNo.get(chunkId)[1];
     }
 
-    public long getStorageSpace() {
+    public int getStorageSpace() {
         return this.diskSpace;
     }
 
-    public void setStorageSpace(long value){
-        this.diskSpace=value;
+    public void setStorageSpace(int value) {
+        this.diskSpace = value;
     }
 
     public Backup getBackup() {
         return this.backup;
     }
 
-    public long getUsedSpace() {
+    public int getUsedSpace() {
         return usedSpace;
     }
 
-    public void setUsedSpace(long usedSpace) {
+    public void setUsedSpace(int usedSpace) {
         this.usedSpace = usedSpace;
     }
 

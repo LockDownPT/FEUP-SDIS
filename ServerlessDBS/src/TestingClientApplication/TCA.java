@@ -12,7 +12,7 @@ class TCA {
     private String file;
     private int replicationDegree;
     private PeerInterface testingPeer;
-    private long spaceReclaimValue;
+    private int spaceReclaimValue;
 
     private TCA(String[] args) {
 
@@ -26,7 +26,7 @@ class TCA {
                 file = args[2];
                 break;
             case "SPACERECLAIM":
-                spaceReclaimValue = Long.parseLong(args[2]);
+                spaceReclaimValue = Integer.parseInt(args[2]);
                 break;
             default:
                 break;

@@ -13,7 +13,7 @@ public interface PeerInterface extends Remote {
 
     void delete(String file) throws RemoteException;
 
-    void spaceReclaim(long value) throws RemoteException;
+    void spaceReclaim(int value) throws RemoteException;
 
     void state() throws RemoteException;
 }
