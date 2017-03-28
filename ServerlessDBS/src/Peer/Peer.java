@@ -32,7 +32,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private String peerId;
     private String version;
     private long usedSpace = 0;
-    private long diskSpace = 5*64000;
+    private long diskSpace = 4*64000;
 
     /**
      * String is the chunkId = fileId+ChunkNo
@@ -44,8 +44,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      * String holds the desired replication degree
      */
     private Map<String, String> storedChunks = new ConcurrentHashMap<>();
-
-    //TODO: MAke this a tree map
     /**
      * Holds information about chunks replication degree in the network
      * String is a par of fileId+chunkNo

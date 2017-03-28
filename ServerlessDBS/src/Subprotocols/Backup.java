@@ -46,43 +46,44 @@ public class Backup {
     }
 
     /**
-     * If the peer doesn't have the chunk, it will store it inside it's "disk" and send a STORED
-     * message for the sender
+     * If the peer doesn't have the chunk and it has enough space,
+     * it will store the chunk and send a STORED message for the sender
      */
     public void storeChunk(Message message) {
         if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-            OutputStream output = null;
-            try {
-                //Creates sub folders structure -> peerId/FileId/ChunkNo
-                File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                outFile.getParentFile().mkdirs();
-                outFile.createNewFile();
-                output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                assert output != null;
-                output.write(message.getBody(), 0, message.getBody().length);
-                peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+            long availableSpace = peer.getStorageSpace()-peer.getUsedSpace();
+            if(availableSpace>message.getBody().length){
+                OutputStream output = null;
                 try {
-                    peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                    Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                    Mailman sendStored = new Mailman(stored, peer);
-                    sendStored.startMailmanThread();
-
-                    assert output != null;
-                    output.close();
+                    //Creates sub folders structure -> peerId/FileId/ChunkNo
+                    File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                    outFile.getParentFile().mkdirs();
+                    outFile.createNewFile();
+                    output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                try {
+                    assert output != null;
+                    output.write(message.getBody(), 0, message.getBody().length);
+                    peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
+                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        Mailman sendStored = new Mailman(stored, peer);
+                        sendStored.startMailmanThread();
+                        assert output != null;
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
-
     }
 
     /**
