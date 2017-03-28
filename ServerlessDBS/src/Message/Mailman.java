@@ -270,6 +270,8 @@ public class Mailman {
         String path = "./"+peer.getPeerId()+"/"+fileId;
         File file = new File(path);
         deleteFolder(file);
+        if(peer.getDeleteProtocol() != null)
+        peer.getDeleteProtocol().updateRD1();
     }
 
     public static void deleteFolder(File folder) {
@@ -285,6 +287,8 @@ public class Mailman {
         }
         folder.delete();
     }
+
+
 
 
 }

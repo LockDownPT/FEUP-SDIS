@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
+    private Delete deleteProtocol = null;
     private Map<String, Backup>backupProtocol = new ConcurrentHashMap<>();
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
@@ -93,7 +94,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         backupProtocol.put(backup.getFileId(),backup);
 
         System.out.println("Finished Reading Chunks");
-
     }
 
     /**
@@ -111,19 +111,28 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+
+
     /***
      * Starts delete protocol
      * @param file
      */
     public void delete(String file){
 
-        //Starts backup protocol
-        Delete delete = new Delete(file, this);
+        //Starts delete protocol
+        deleteProtocol = new Delete(file, this);
 
-        //Reads chunks from a file and sends chunks to backup broadcast channel
-        delete.deleteChunks();
+
+        deleteProtocol.deleteChunks();
+
 
         System.out.println("Finished Reading Chunks");
+
+    }
+
+    public void updateRD(String hash){
+        storedChunks.remove(hash);
+        chunksReplicationDegree.remove(hash);
 
     }
 
@@ -220,7 +229,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     /**
      * Saves information about chunks replication degree to non-volatile memory
      */
-    private void saveRepDegInfoToDisk(){
+    public void saveRepDegInfoToDisk(){
         Properties properties = new Properties();
 
         properties.putAll(chunksReplicationDegree);
@@ -324,6 +333,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return storageSpace;
     }
 
+
+
     public long getUsedSpace() {
         return usedSpace;
     }
@@ -366,6 +377,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     public String getVersion() {
         return version;
+    }
+
+    public Delete getDeleteProtocol() {
+        return deleteProtocol;
     }
 
 }
