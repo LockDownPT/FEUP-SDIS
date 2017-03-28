@@ -124,6 +124,7 @@ public class Mailman {
                         peer.getBackup().storeChunk(message);
                     else
                         peer.getBackup().storeChunkEnhanced(message);
+                    peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
                     break;
                 case STORED:
                     peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());

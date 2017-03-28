@@ -34,7 +34,7 @@ public class Backup {
     }
 
 
-    private void sendChunk(byte[] chunk, int chunkNo) {
+    public void sendChunk(byte[] chunk, int chunkNo) {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);

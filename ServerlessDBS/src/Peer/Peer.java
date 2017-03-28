@@ -336,6 +336,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         }
     }
 
+    public int getDesiredReplicationDegree(String key){
+        return Integer.parseInt(storedChunks.get(key));
+    }
+
 
     /**
      * Verifies if the peer has this chunk
@@ -428,8 +432,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return mapChunkIdToFileAndChunkNo.get(chunkId)[1];
     }
 
-    private long getStorageSpace() {
+    public long getStorageSpace() {
         return this.diskSpace;
+    }
+
+    public void setStorageSpace(long value){
+        this.diskSpace=value;
     }
 
     public Backup getBackup() {
