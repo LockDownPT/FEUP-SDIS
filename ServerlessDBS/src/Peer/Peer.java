@@ -35,7 +35,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private String peerId;
     private String version;
     private int usedSpace = 0;
-    private int diskSpace = 150 * 64000;
+    private int diskSpace = 4 * 64000;
     private ExecutorService senderExecutor;
     private ExecutorService receiverExecutor;
     private ExecutorService deliverExecutor;

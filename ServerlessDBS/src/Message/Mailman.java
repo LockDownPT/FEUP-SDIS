@@ -50,15 +50,15 @@ public class Mailman {
     public void startMailmanThread() {
         switch (type){
             case "SENDER":
-                peer.getSenderExecutor().execute(mailman);
+                peer.getSenderExecutor().submit(mailman);
                 System.out.println("SENDER");
                 break;
             case "RECEIVER":
-                peer.getReceiverExecutor().execute(mailman);
+                peer.getReceiverExecutor().submit(mailman);
                 System.out.println("RECEIVER");
                 break;
             case "DELIVER":
-                peer.getDeliverExecutor().execute(mailman);
+                peer.getDeliverExecutor().submit(mailman);
                 System.out.println("DELIVER");
                 break;
             default:
