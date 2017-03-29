@@ -25,6 +25,9 @@ class TCA {
             case "RESTORE":
                 file = args[2];
                 break;
+            case "DELETE":
+                file = args[2];
+                break;
             case "SPACERECLAIM":
                 spaceReclaimValue = Integer.parseInt(args[2]);
                 break;

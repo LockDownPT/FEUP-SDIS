@@ -21,31 +21,32 @@ public class Delete {
     public Delete(String file, Peer peer) {
         this.fileName = file;
         this.peer = peer;
-        this.fileId = getFileId();
+
     }
 
     public Delete(Peer peer){
         this.peer=peer;
     }
 
-    public String getFileId(){
-        String path = "./src/TestFiles/" + fileName;
+    public void getFileId(){
+        String path = "./TestFiles/" + this.fileName;
         File file = new File(path);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        return createHash(fileName + sdf.format(file.lastModified()));
+        this.fileId = createHash(fileName + sdf.format(file.lastModified()));
     }
 
     public void deleteChunks() {
+        getFileId();
         Message request = new Message(DELETE ,peer.getVersion(), peer.getPeerId(),this.fileId );
         Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
     }
 
-    public void updateRepDeg1() {
+    public void updateRepDeg1(String file) {
 
-
-            this.peer.updateRepDeg(fileId);
+            getFileId();
+            this.peer.updateRepDeg(file);
             //this.peer.saveRepDegInfoToDisk();
 
             }
@@ -58,7 +59,7 @@ public class Delete {
         File file = new File(path);
         deleteFolder(file);
         if (peer.getDeleteProtocol() != null)
-            peer.getDeleteProtocol().updateRepDeg1();
+            peer.getDeleteProtocol().updateRepDeg1(fileId);
     }
 
     public  void deleteFolder(File folder) {
