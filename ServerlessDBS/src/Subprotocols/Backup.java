@@ -206,7 +206,7 @@ public class Backup {
                 byte[] buf = new byte[(int) (long) lastChunkSize];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo+1), Integer.toString(replicationDegree));
+                    Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
                     request.setBody(buf);
                     deliverPutchunkMessage(request);
                     //sendChunk(buf, chunkNo + 1);

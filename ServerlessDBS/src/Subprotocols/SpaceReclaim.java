@@ -17,7 +17,7 @@ public class SpaceReclaim {
 
     private Peer peer;
     private int spaceToBeReduced = 0;
-    private int receivedPUCHUNK = 0;
+    private int receivedPUTCHUNK = 0;
     private String chunkId = null;
 
     public SpaceReclaim(Peer peer, int spaceToBeReduced) {
@@ -69,7 +69,6 @@ public class SpaceReclaim {
             int tempRepDeg = peer.getReplicationDegreeOfChunk(key);
             while (tempRepDeg > Integer.parseInt(value)) {
                 removeChunk(key);
-                sendRemovedMessage(key);
                 tempRepDeg--;
             }
             if (spaceToBeReduced == 0)
@@ -85,7 +84,6 @@ public class SpaceReclaim {
             int tempRepDeg = peer.getReplicationDegreeOfChunk(key);
             if (tempRepDeg > 1) {
                 removeChunk(key);
-                sendRemovedMessage(key);
             }
             if (spaceToBeReduced == 0)
                 return true;
@@ -97,13 +95,14 @@ public class SpaceReclaim {
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
             removeChunk(key);
-            sendRemovedMessage(key);
             if (spaceToBeReduced == 0)
                 return;
         }
     }
 
     public void removeChunk(String chunkId) {
+
+        System.out.println("CHUNK ID: " + chunkId);
 
         Path path = FileSystems.getDefault().getPath("./" + peer.getPeerId() + "/" + peer.getFileIdFromChunkId(chunkId) + "/", peer.getChunkNoFromChunkId(chunkId));
         int chunkSize = 0;
@@ -115,6 +114,10 @@ public class SpaceReclaim {
             return;
         }
 
+        sendRemovedMessage(chunkId);
+
+        peer.decreaseReplicationDegree(peer.getFileIdFromChunkId(chunkId), peer.getChunkNoFromChunkId(chunkId));
+        peer.removeChunkFromStoredChunks(chunkId);
         peer.setUsedSpace(peer.getUsedSpace() - chunkSize);
         this.spaceToBeReduced -= chunkSize;
 
@@ -144,17 +147,17 @@ public class SpaceReclaim {
         if (peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
             if (currentRepDeg < desiredRepDeg) {
                 try {
-                    receivedPUCHUNK = 0;
+                    receivedPUTCHUNK = 0;
                     chunkId = message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo();
-                    Thread.sleep(400);
+                    Thread.sleep((long) (Math.random() * 400));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    if (receivedPUCHUNK == 1) {
+                    if (receivedPUTCHUNK == 0) {
                         Message messagePUTCHUNK = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), String.valueOf(desiredRepDeg));
                         peer.getBackup().deliverPutchunkMessage(messagePUTCHUNK);
                     }
-                    receivedPUCHUNK = 0;
+                    receivedPUTCHUNK = 0;
                 }
             }
         }
@@ -164,7 +167,7 @@ public class SpaceReclaim {
     public void increaseReceivedPUTCHUNK(Message message) {
         if(chunkId!=null){
             if (chunkId.equals(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo())) {
-                receivedPUCHUNK = 1;
+                receivedPUTCHUNK = 1;
             }
         }
 

@@ -17,7 +17,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +35,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private String peerId;
     private String version;
     private int usedSpace = 0;
-    private int diskSpace = 100 * 64000;
+    private int diskSpace = 10 * 64000;
     private ExecutorService senderExecutor;
     private ExecutorService receiverExecutor;
     private ExecutorService deliverExecutor;

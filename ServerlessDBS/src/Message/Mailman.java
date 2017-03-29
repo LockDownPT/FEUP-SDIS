@@ -139,11 +139,11 @@ public class Mailman {
                 return;
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
+                    peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
                     if (peer.getVersion().equals("1.0"))
                         peer.getBackup().storeChunk(message);
                     else
                         peer.getBackup().storeChunkEnhanced(message);
-                    peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
                     break;
                 case STORED:
                     peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
