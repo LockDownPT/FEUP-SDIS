@@ -43,6 +43,7 @@ public class Delete {
         Message request = new Message(DELETE, peer.getVersion(), peer.getPeerId(), this.fileId);
         Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
+        updateRepDeg(this.fileId);
     }
 
     public void updateRepDeg(String file) {
@@ -92,6 +93,7 @@ public class Delete {
             Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETE, peer);
             mailman.startMailmanThread();
         }
+
     }
 
 
