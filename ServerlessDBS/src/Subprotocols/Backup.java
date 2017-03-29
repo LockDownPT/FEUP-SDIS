@@ -18,7 +18,7 @@ public class Backup {
     private int replicationDegree;
     private String fileId;
     private Peer peer;
-    private int numberOfChunks = 0;
+    private int numberOfChunks = 1;
 
 
     public Backup(String file, int replicationDegree, Peer peer) {
@@ -65,6 +65,7 @@ public class Backup {
                 }
                 try {
                     assert output != null;
+                    System.out.println("BODY SIZE: " + message.getBody().length);
                     output.write(message.getBody(), 0, message.getBody().length);
                     peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
                 } catch (IOException e) {
@@ -74,8 +75,7 @@ public class Backup {
                         peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
                         peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                         Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        Mailman sendStored = new Mailman(stored, peer);
-                        sendStored.startMailmanThread();
+                        deliverStoredMessage(stored);
                         assert output != null;
                         output.close();
                     } catch (IOException e) {
@@ -167,7 +167,7 @@ public class Backup {
     }
 
     public void readChunks() {
-        int chunkNo = 0;
+        int chunkNo = 1;
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
@@ -193,7 +193,10 @@ public class Backup {
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    sendChunk(buf, chunkId);
+                    Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
+                    request.setBody(buf);
+                    deliverPutchunkMessage(request);
+                    //sendChunk(buf, chunkId);
                 }
                 chunkNo++;
                 this.numberOfChunks++;
@@ -203,7 +206,10 @@ public class Backup {
                 byte[] buf = new byte[(int) (long) lastChunkSize];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    sendChunk(buf, chunkNo + 1);
+                    Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo+1), Integer.toString(replicationDegree));
+                    request.setBody(buf);
+                    deliverPutchunkMessage(request);
+                    //sendChunk(buf, chunkNo + 1);
                 }
                 this.numberOfChunks++;
             }

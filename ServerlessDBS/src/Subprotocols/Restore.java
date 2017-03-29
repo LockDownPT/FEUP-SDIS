@@ -54,6 +54,8 @@ public class Restore {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            System.out.println("Restored Chunks: " + restoredChunks);
+            System.out.println("Number of Chunks: " + numberOfChunks);
         } while (restoredChunks < numberOfChunks);
         System.out.println("Constructing File");
         constructFile();
@@ -72,9 +74,8 @@ public class Restore {
         try {
             fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            this.numberOfChunks = (int) (fileLength / maxSizeChunk);
+            this.numberOfChunks = (int) Math.ceil(fileLength / maxSizeChunk);
             int lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
-            this.numberOfChunks++;
         } catch (IOException e) {
             e.printStackTrace();
         }
