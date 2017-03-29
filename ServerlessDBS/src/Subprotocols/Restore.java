@@ -9,8 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static Utilities.Constants.*;
@@ -64,7 +63,7 @@ public class Restore {
 
     public void getFileInfo() {
         long maxSizeChunk = 64 * 1000;
-        String path = "./src/TestFiles/" + fileName;
+        String path = "./TestFiles/" + fileName;
         File file = new File(path);
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -73,8 +72,9 @@ public class Restore {
         try {
             fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            this.numberOfChunks = (int) (fileLength / maxSizeChunk) + 1;
+            this.numberOfChunks = (int) (fileLength / maxSizeChunk);
             int lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
+            this.numberOfChunks++;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,17 +84,14 @@ public class Restore {
     private void requestChunks() {
 
         int chunkNo = 1;
-
         while (chunkNo <= numberOfChunks) {
             Message request = new Message(GETCHUNK, peer.getVersion(), peer.getPeerId(), this.fileId, Integer.toString(chunkNo));
 
             Mailman messageHandler = new Mailman(request, peer);
             messageHandler.startMailmanThread();
-
+            System.out.println("Requesting chunk number: " + chunkNo);
             chunkNo++;
         }
-
-
     }
 
     private void constructFile() {
@@ -104,11 +101,9 @@ public class Restore {
         try {
             file = new File("./" + fileName);
             fop = new FileOutputStream(file, true);
-            Iterator it = chunks.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                fop.write((byte[]) pair.getValue());
-                it.remove(); // avoids a ConcurrentModificationException
+            for(int i = 1; i<=chunks.size();i++){
+                System.out.println((chunks.get(Integer.toString(i))).length);
+                fop.write(chunks.get(Integer.toString(i)));
             }
             fop.flush();
             fop.close();
@@ -140,8 +135,7 @@ public class Restore {
                 if (!peer.hasChunkBeenSent(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
                     Message chunk = new Message(CHUNK, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo()));
-                    Mailman sendChunk = new Mailman(chunk, peer);
-                    sendChunk.startMailmanThread();
+                    deliverChunkMessage(chunk);
                     System.out.println("Sent CHUNK");
                 }
             }
@@ -163,7 +157,7 @@ public class Restore {
         if (chunks.get(chunkNo) == null) {
             chunks.put(chunkNo, chunk);
             restoredChunks++;
-            System.out.println("Received chunk: " + chunkNo);
+            System.out.println("Received chunk: " + chunkNo + "Chunk Size: " + chunk.length);
         }
     }
 
@@ -172,7 +166,7 @@ public class Restore {
      * GETCHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
      */
     public void deliverGetchunkMessage(Message message) {
-        Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED);
+        Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), STORED, peer);
         mailman.startMailmanThread();
     }
 
@@ -181,7 +175,7 @@ public class Restore {
      * CHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> <Body>
      */
     public void deliverChunkMessage(Message message) {
-        Mailman mailman = new Mailman(message, peer.getMdr_ip(), peer.getMdr_port(), CHUNK);
+        Mailman mailman = new Mailman(message, peer.getMdr_ip(), peer.getMdr_port(), CHUNK, peer);
         mailman.startMailmanThread();
     }
 }

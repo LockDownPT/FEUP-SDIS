@@ -2,7 +2,6 @@ package Message;
 
 import Peer.Peer;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -13,38 +12,58 @@ import static Utilities.Constants.*;
 public class Mailman {
 
     private Message message;
-    private Thread thread;
     private Peer peer;
     private String addr;
     private int port;
+    private Runnable mailman;
     private String messageType;
+    private String type;
 
 
     public Mailman(DatagramPacket message, Peer creator) {
         this.message = new Message(message);
-        this.thread = new ReceiverThread();
+        this.mailman = new ReceiverThread();
+        this.type="RECEIVER";
         this.peer = creator;
     }
 
     public Mailman(Message message, Peer creator) {
         this.message = message;
-        this.thread = new SenderThread();
+        this.mailman = new SenderThread();
+        this.type="SENDER";
         this.peer = creator;
     }
 
-    public Mailman(Message message, String addr, int port, String messageType) {
+    public Mailman(Message message, String addr, int port, String messageType, Peer peer) {
         this.message = message;
         this.addr = addr;
         this.port = port;
+        this.type="DELIVER";
         this.messageType = messageType;
-        this.thread = new DeliverMessageThread();
+        this.mailman = new DeliverMessageThread();
+        this.peer = peer;
     }
 
     /**
      * Starts thread
      */
     public void startMailmanThread() {
-        this.thread.start();
+        switch (type){
+            case "SENDER":
+                peer.getSenderExecutor().submit(mailman);
+                System.out.println("SENDER");
+                break;
+            case "RECEIVER":
+                peer.getReceiverExecutor().submit(mailman);
+                System.out.println("RECEIVER");
+                break;
+            case "DELIVER":
+                peer.getDeliverExecutor().submit(mailman);
+                System.out.println("DELIVER");
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -74,13 +93,13 @@ public class Mailman {
         }
     }
 
-    public class DeliverMessageThread extends Thread {
+    public class DeliverMessageThread implements Runnable {
         public void run() {
             deliverMessage(message, addr, port, messageType);
         }
     }
 
-    public class SenderThread extends Thread {
+    public class SenderThread implements Runnable {
         public void run() {
             System.out.println("Sended request:" + message.getMessageHeader().getMessageType());
             switch (message.getMessageHeader().getMessageType()) {
@@ -112,7 +131,7 @@ public class Mailman {
 
     }
 
-    public class ReceiverThread extends Thread {
+    public class ReceiverThread implements Runnable {
         public void run() {
             System.out.println("Received request:" + message.getMessageHeader().getMessageType());
             //Ignores requests sent by itself
@@ -124,6 +143,7 @@ public class Mailman {
                         peer.getBackup().storeChunk(message);
                     else
                         peer.getBackup().storeChunkEnhanced(message);
+                    peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
                     break;
                 case STORED:
                     peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
@@ -145,8 +165,6 @@ public class Mailman {
             }
         }
     }
-
-
 
 
 }

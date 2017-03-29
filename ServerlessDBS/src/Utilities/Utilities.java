@@ -1,11 +1,6 @@
 package Utilities;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-
 import javax.xml.bind.DatatypeConverter;
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.security.MessageDigest;
 
 public class Utilities {
@@ -38,7 +33,6 @@ public class Utilities {
     private static String bytesToHex(byte[] hash) {
         return DatatypeConverter.printHexBinary(hash);
     }
-
 
 
 }
