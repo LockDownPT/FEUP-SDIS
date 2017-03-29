@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -42,7 +43,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * String is the chunkId = fileId+ChunkNo
-     * String array has in the first element the fileId and in the second the ChunkNo
+     * String array has in the first element (String[0]) the fileId and in the second (String[1]) the ChunkNo
      */
     private Map<String, String[]> mapChunkIdToFileAndChunkNo = new ConcurrentHashMap<>();
     /**
@@ -167,9 +168,22 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public void updateRepDeg(String hash) {
-        storedChunks.remove(hash);
-        chunksReplicationDegree.remove(hash);
+    public void updateRepDeg(String fileId){
+        for (Map.Entry<String, String[]> entry : mapChunkIdToFileAndChunkNo.entrySet()) {
+            String key = entry.getKey();
+            String[] value = entry.getValue();
+            String degree;
+            degree = chunksReplicationDegree.get(key);
+            String key2 = ""+value[0]+value[1];
+            if (Objects.equals(value[0], fileId)) {
+                storedChunks.remove(key2);
+                degree = "0";
+                mapChunkIdToFileAndChunkNo.remove(key2);
+            }
+            chunksReplicationDegree.put(key2,degree);
+        }
+
+        saveRepDegInfoToDisk();
 
     }
 
