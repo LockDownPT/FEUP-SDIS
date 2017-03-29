@@ -7,6 +7,8 @@ import Peer.Peer;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Map;
+import java.util.Objects;
 
 import static Utilities.Constants.DELETE;
 import static Utilities.Utilities.createHash;
@@ -24,11 +26,11 @@ public class Delete {
 
     }
 
-    public Delete(Peer peer){
-        this.peer=peer;
+    public Delete(Peer peer) {
+        this.peer = peer;
     }
 
-    public void getFileId(){
+    public void getFileId() {
         String path = "./TestFiles/" + this.fileName;
         File file = new File(path);
 
@@ -38,20 +40,26 @@ public class Delete {
 
     public void deleteChunks() {
         getFileId();
-        Message request = new Message(DELETE ,peer.getVersion(), peer.getPeerId(),this.fileId );
+        Message request = new Message(DELETE, peer.getVersion(), peer.getPeerId(), this.fileId);
         Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
     }
 
-    public void updateRepDeg1(String file) {
+    public void updateRepDeg(String file) {
 
-            getFileId();
-            this.peer.updateRepDeg(file);
-            //this.peer.saveRepDegInfoToDisk();
-
+        for (Map.Entry<String, String[]> entry : peer.getMapChunkIdToFileAndChunkNo().entrySet()) {
+            String key = entry.getKey();
+            String[] value = entry.getValue();
+            if (Objects.equals(value[0], file)) {
+                peer.removeChunkFromStoredChunks(key);
+                peer.removeFromChunksReplicationDegree(key);
+                peer.removeMapingChunkIdToFileAndChunkNo(key);
             }
 
+        }
 
+        peer.saveRepDegInfoToDisk();
+    }
 
     public void deleteChunks(String fileId) {
 
@@ -59,14 +67,14 @@ public class Delete {
         File file = new File(path);
         deleteFolder(file);
         if (peer.getDeleteProtocol() != null)
-            peer.getDeleteProtocol().updateRepDeg1(fileId);
+            peer.getDeleteProtocol().updateRepDeg(fileId);
     }
 
-    public  void deleteFolder(File folder) {
+    public void deleteFolder(File folder) {
         File[] files = folder.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
-                if(f.isDirectory()) {
+        if (files != null) { //some JVMs return null for empty dirs
+            for (File f : files) {
+                if (f.isDirectory()) {
                     deleteFolder(f);
                 } else {
                     f.delete();

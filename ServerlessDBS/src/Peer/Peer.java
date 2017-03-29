@@ -168,25 +168,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public void updateRepDeg(String fileId){
-        for (Map.Entry<String, String[]> entry : mapChunkIdToFileAndChunkNo.entrySet()) {
-            String key = entry.getKey();
-            String[] value = entry.getValue();
-            String degree;
-            degree = chunksReplicationDegree.get(key);
-            String key2 = ""+value[0]+value[1];
-            if (Objects.equals(value[0], fileId)) {
-                storedChunks.remove(key2);
-                degree = "0";
-                mapChunkIdToFileAndChunkNo.remove(key2);
-            }
-            chunksReplicationDegree.put(key2,degree);
-        }
-
-        saveRepDegInfoToDisk();
-
-    }
-
     /**
      * This operation allows to observe the service state. In response to such a request, the peer shall send to the client the following information:
      * For each file whose backup it has initiated:
@@ -432,6 +413,26 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         parFileIdChunkNo[0] = fileId;
         parFileIdChunkNo[1] = chunkNo;
         this.mapChunkIdToFileAndChunkNo.put(fileId + chunkNo, parFileIdChunkNo);
+    }
+
+    public Map<String, String[]> getMapChunkIdToFileAndChunkNo() {
+        return mapChunkIdToFileAndChunkNo;
+    }
+
+    public void removeChunkFromStoredChunks(String chunkID){
+        this.storedChunks.remove(chunkID);
+    }
+
+    public void removeMapingChunkIdToFileAndChunkNo(String chunkId){
+        this.mapChunkIdToFileAndChunkNo.remove(chunkId);
+    }
+
+    public void removeFromChunksReplicationDegree(String chunkId){
+        this.chunksReplicationDegree.remove(chunkId);
+    }
+
+    public void setChunksReplicationDegree(String chunkId, String degree){
+        this.chunksReplicationDegree.put(chunkId,degree);
     }
 
     public ExecutorService getReceiverExecutor() {
