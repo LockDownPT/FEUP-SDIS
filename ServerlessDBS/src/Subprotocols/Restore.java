@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static Utilities.Constants.*;
@@ -63,7 +63,7 @@ public class Restore {
 
     }
 
-    public void getFileInfo() {
+    private void getFileInfo() {
         long maxSizeChunk = 64 * 1000;
         String path = "./TestFiles/" + fileName;
         File file = new File(path);
@@ -102,7 +102,7 @@ public class Restore {
         try {
             file = new File("./" + fileName);
             fop = new FileOutputStream(file, true);
-            for(int i = 1; i<=chunks.size();i++){
+            for (int i = 1; i <= chunks.size(); i++) {
                 System.out.println((chunks.get(Integer.toString(i))).length);
                 fop.write(chunks.get(Integer.toString(i)));
             }

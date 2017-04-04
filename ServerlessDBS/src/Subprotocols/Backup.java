@@ -38,12 +38,10 @@ public class Backup {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
-        System.out.println("CHUNK LENGTH:" + request.getBody().length);
-        Mailman messageHandler = new Mailman(request, peer);
-        messageHandler.startMailmanThread();
-
+        deliverPutchunkMessage(request);
 
     }
+
 
     /**
      * If the peer doesn't have the chunk and it has enough space,
@@ -92,7 +90,7 @@ public class Backup {
      */
     public void storeChunkEnhanced(Message message) {
         try {
-            Thread.sleep((long) (Math.random() * 1000));
+            Thread.sleep((long) (Math.random() * 3000));
             int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
             int currentRepDeg = getPeer().getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
             if (currentRepDeg < desiredRepDeg) {
@@ -193,10 +191,7 @@ public class Backup {
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
-                    request.setBody(buf);
-                    deliverPutchunkMessage(request);
-                    //sendChunk(buf, chunkId);
+                    sendChunk(buf, chunkId);
                 }
                 chunkNo++;
                 this.numberOfChunks++;
@@ -206,10 +201,7 @@ public class Backup {
                 byte[] buf = new byte[(int) (long) lastChunkSize];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
-                    request.setBody(buf);
-                    deliverPutchunkMessage(request);
-                    //sendChunk(buf, chunkNo + 1);
+                    sendChunk(buf, chunkNo + 1);
                 }
                 this.numberOfChunks++;
             }

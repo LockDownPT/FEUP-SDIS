@@ -24,11 +24,12 @@ public class SpaceReclaim {
         this.peer = peer;
         this.spaceToBeReduced = spaceToBeReduced;
     }
+
     public SpaceReclaim(Peer peer) {
         this.peer = peer;
     }
 
-    public boolean updatePeerStorage() {
+    private boolean updatePeerStorage() {
         int storageSpace = peer.getStorageSpace();
         int usedSpace = peer.getUsedSpace();
         int freeSpace = storageSpace - usedSpace;
@@ -60,7 +61,7 @@ public class SpaceReclaim {
     }
 
 
-    public boolean findExtraChunks() {
+    private boolean findExtraChunks() {
 
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
@@ -77,7 +78,7 @@ public class SpaceReclaim {
         return false;
     }
 
-    public boolean removeChunksWithLowerRepDeg() {
+    private boolean removeChunksWithLowerRepDeg() {
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
 
@@ -91,7 +92,7 @@ public class SpaceReclaim {
         return false;
     }
 
-    public void removeChunksWithOneRepDeg() {
+    private void removeChunksWithOneRepDeg() {
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
             removeChunk(key);
@@ -100,7 +101,7 @@ public class SpaceReclaim {
         }
     }
 
-    public void removeChunk(String chunkId) {
+    private void removeChunk(String chunkId) {
 
         System.out.println("CHUNK ID: " + chunkId);
 
@@ -123,7 +124,7 @@ public class SpaceReclaim {
 
     }
 
-    public void sendRemovedMessage(String chunkId) {
+    private void sendRemovedMessage(String chunkId) {
 
         Message message = new Message(REMOVED, peer.getVersion(), peer.getPeerId(), peer.getFileIdFromChunkId(chunkId), peer.getChunkNoFromChunkId(chunkId));
         Mailman mailman = new Mailman(message, peer);
@@ -165,7 +166,7 @@ public class SpaceReclaim {
     }
 
     public void increaseReceivedPUTCHUNK(Message message) {
-        if(chunkId!=null){
+        if (chunkId != null) {
             if (chunkId.equals(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo())) {
                 receivedPUTCHUNK = 1;
             }

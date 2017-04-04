@@ -30,7 +30,7 @@ public class Delete {
         this.peer = peer;
     }
 
-    public void getFileId() {
+    private void getFileId() {
         String path = "./TestFiles/" + this.fileName;
         File file = new File(path);
 
@@ -46,7 +46,7 @@ public class Delete {
         updateRepDeg(this.fileId);
     }
 
-    public void updateRepDeg(String file) {
+    private void updateRepDeg(String file) {
 
         for (Map.Entry<String, String[]> entry : peer.getMapChunkIdToFileAndChunkNo().entrySet()) {
             String key = entry.getKey();
@@ -71,7 +71,7 @@ public class Delete {
             peer.getDeleteProtocol().updateRepDeg(fileId);
     }
 
-    public void deleteFolder(File folder) {
+    private void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if (files != null) { //some JVMs return null for empty dirs
             for (File f : files) {

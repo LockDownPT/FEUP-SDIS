@@ -61,7 +61,7 @@ public class Message {
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
                 messageHeader.setReplicationDeg(requestHeader[5]);
-                bodyContent = new byte[packet.getLength()-header.length()-4];
+                bodyContent = new byte[packet.getLength() - header.length() - 4];
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;
@@ -78,7 +78,7 @@ public class Message {
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
-                bodyContent = new byte[packet.getLength()-header.length()-4];
+                bodyContent = new byte[packet.getLength() - header.length() - 4];
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;

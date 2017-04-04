@@ -407,7 +407,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return spaceReclaimProtocol;
     }
 
-    public void addChunkIdToRegistry(String fileId, String chunkNo) {
+    private void addChunkIdToRegistry(String fileId, String chunkNo) {
         String[] parFileIdChunkNo = new String[2];
         parFileIdChunkNo[0] = fileId;
         parFileIdChunkNo[1] = chunkNo;
@@ -418,29 +418,33 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return mapChunkIdToFileAndChunkNo;
     }
 
-    public void removeChunkFromStoredChunks(String chunkID){
+    public void removeChunkFromStoredChunks(String chunkID) {
         this.storedChunks.remove(chunkID);
     }
 
-    public void removeMapingChunkIdToFileAndChunkNo(String chunkId){
+    public void removeMapingChunkIdToFileAndChunkNo(String chunkId) {
         this.mapChunkIdToFileAndChunkNo.remove(chunkId);
     }
 
-    public void removeFromChunksReplicationDegree(String chunkId){
+    public void removeFromChunksReplicationDegree(String chunkId) {
         this.chunksReplicationDegree.remove(chunkId);
     }
 
-    public void setChunksReplicationDegree(String chunkId, String degree){
-        this.chunksReplicationDegree.put(chunkId,degree);
+    public void setChunksReplicationDegree(String chunkId, String degree) {
+        this.chunksReplicationDegree.put(chunkId, degree);
     }
 
     public ExecutorService getReceiverExecutor() {
         return receiverExecutor;
     }
 
-    public ExecutorService getSenderExecutor() { return senderExecutor;}
+    public ExecutorService getSenderExecutor() {
+        return senderExecutor;
+    }
 
-    public ExecutorService getDeliverExecutor() {return deliverExecutor;}
+    public ExecutorService getDeliverExecutor() {
+        return deliverExecutor;
+    }
 
     public String getFileIdFromChunkId(String chunkId) {
         return mapChunkIdToFileAndChunkNo.get(chunkId)[0];

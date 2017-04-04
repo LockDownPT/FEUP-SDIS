@@ -23,14 +23,14 @@ public class Mailman {
     public Mailman(DatagramPacket message, Peer creator) {
         this.message = new Message(message);
         this.mailman = new ReceiverThread();
-        this.type="RECEIVER";
+        this.type = "RECEIVER";
         this.peer = creator;
     }
 
     public Mailman(Message message, Peer creator) {
         this.message = message;
         this.mailman = new SenderThread();
-        this.type="SENDER";
+        this.type = "SENDER";
         this.peer = creator;
     }
 
@@ -38,7 +38,7 @@ public class Mailman {
         this.message = message;
         this.addr = addr;
         this.port = port;
-        this.type="DELIVER";
+        this.type = "DELIVER";
         this.messageType = messageType;
         this.mailman = new DeliverMessageThread();
         this.peer = peer;
@@ -48,7 +48,7 @@ public class Mailman {
      * Starts thread
      */
     public void startMailmanThread() {
-        switch (type){
+        switch (type) {
             case "SENDER":
                 peer.getSenderExecutor().submit(mailman);
                 System.out.println("SENDER");

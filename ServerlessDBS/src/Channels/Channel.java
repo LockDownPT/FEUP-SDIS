@@ -26,7 +26,7 @@ public class Channel {
 
     }
 
-    public DatagramPacket receiveRequests(String protocol) throws IOException {
+    DatagramPacket receiveRequests(String protocol) throws IOException {
 
         byte[] buf;
 
@@ -46,11 +46,11 @@ public class Channel {
 
     }
 
-    public void setThread(Thread thread) {
+    void setThread(Thread thread) {
         this.thread = thread;
     }
 
-    public Peer getPeer() {
+    Peer getPeer() {
         return peer;
     }
 
