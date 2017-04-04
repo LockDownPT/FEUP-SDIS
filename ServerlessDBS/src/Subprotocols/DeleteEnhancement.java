@@ -11,23 +11,22 @@ import java.util.Map;
 import java.util.Objects;
 
 import static Utilities.Constants.DELETE;
-import static Utilities.Constants.DELETED;
 import static Utilities.Utilities.createHash;
 
-public class Delete {
+public class DeleteEnhancement {
 
     private String fileName;
     private String fileId;
-
     private Peer peer;
 
-    public Delete(String file, Peer peer) {
+
+    public DeleteEnhancement(String file, Peer peer) {
         this.fileName = file;
         this.peer = peer;
 
     }
 
-    public Delete(Peer peer) {
+    public DeleteEnhancement(Peer peer) {
         this.peer = peer;
     }
 
@@ -98,33 +97,5 @@ public class Delete {
     }
 
 
-    public void deliverDeleteMessageEhnanced(Message message) {
-        for (int i = 0; i < 3; i++) {
-            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETE, peer);
-            mailman.startMailmanThread();
-        }
-    }
-
-    public void deleteChunksEnhanced(Message message) {
-
-        String path = "./" + peer.getPeerId() + "/" + fileId;
-        File file = new File(path);
-        deleteFolder(file);
-        if (peer.getDeleteProtocol() != null)
-            peer.getDeleteProtocol().updateRepDeg(fileId);
-
-
-        Message request = new Message(DELETED, peer.getVersion(), peer.getPeerId(), this.fileId);
-        Mailman messageHandler = new Mailman(request, peer);
-        messageHandler.startMailmanThread();
-
-    }
-
-    public void deliverDeletedMessageEnhanced(Message message) {
-
-        Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETED, peer);
-        mailman.startMailmanThread();
-
-    }
 }
 

@@ -83,6 +83,7 @@ public class Message {
                 setBody(bodyContent);
                 break;
             case "DELETE":
+            case "DELETED":
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);

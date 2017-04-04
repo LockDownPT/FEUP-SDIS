@@ -119,10 +119,17 @@ public class Mailman {
                     peer.getRestoreProtocol().deliverChunkMessage(message);
                     break;
                 case DELETE:
+                    if (peer.getVersion().equals("1.0"))
                     peer.getDeleteProtocol().deliverDeleteMessage(message);
+                    else
+                        peer.getDeleteProtocol().deliverDeleteMessageEhnanced(message);
                     break;
                 case REMOVED:
                     peer.getSpaceReclaimProtocol().deliverRemovedMessage(message);
+                    break;
+                case DELETED:
+                    System.out.println("ta quase quase");
+                    peer.getDeleteProtocol().deliverDeletedMessageEnhanced(message);
                     break;
                 default:
                     break;
@@ -158,7 +165,14 @@ public class Mailman {
                     peer.getSpaceReclaimProtocol().updateChunkRepDegree(message);
                     break;
                 case DELETE:
+                    if (peer.getVersion().equals("1.0"))
                     peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
+                    else{
+                        System.out.println("ta quase1 ");
+                        peer.getDeleteProtocol().deleteChunksEnhanced(message);}
+                    break;
+                case DELETED:
+                    System.out.println("ja ta asdasdsadasd");
                     break;
                 default:
                     break;
