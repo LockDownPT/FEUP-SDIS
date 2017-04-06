@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +32,7 @@ public class Restore {
     private int numberOfChunks = 0;
     private int restoredChunks = 0;
     private String fileId;
+    private Runnable restoreEnhanced;
 
     public Restore(String file, Peer peer) {
 
@@ -40,11 +44,43 @@ public class Restore {
         this.peer = peer;
     }
 
+    public class RestoreEnhanced implements Runnable{
+        public void run() {
+            DatagramPacket packet;
+            DatagramSocket socket = null;
+            try {
+                socket = new DatagramSocket(Integer.parseInt(peer.getPeerId()));
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+            byte[] buf = new byte[256];
+            packet = new DatagramPacket(buf, buf.length);
+
+            while(true){
+                //if the client does receive an answer in the given timeout, it resends the packet
+                try {
+                    socket.receive(packet);
+                    Message chunk = new Message(packet);
+                    saveChunk(chunk);
+                } catch (IOException e) {
+                    System.out.println("RECEIVED CHUNK");
+                }
+            }
+
+        }
+    }
 
     public void start() {
 
         System.out.println("Gathering file info");
         getFileInfo();
+
+        if(!peer.getVersion().equals("1.0")){
+            this.restoreEnhanced = new RestoreEnhanced();
+            peer.getDeliverExecutor().submit(restoreEnhanced);
+
+        }
+
         System.out.print("Requesting chunks");
         requestChunks();
         do {
@@ -85,6 +121,7 @@ public class Restore {
     private void requestChunks() {
 
         int chunkNo = 1;
+
         while (chunkNo <= numberOfChunks) {
             Message request = new Message(GETCHUNK, peer.getVersion(), peer.getPeerId(), this.fileId, Integer.toString(chunkNo));
 
@@ -134,9 +171,9 @@ public class Restore {
                 e.printStackTrace();
             } finally {
                 if (!peer.hasChunkBeenSent(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-                    Message chunk = new Message(CHUNK, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    Message chunk = new Message(CHUNK, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo()));
-                    deliverChunkMessage(chunk);
+                    deliverChunkMessage(chunk, message);
                     System.out.println("Sent CHUNK");
                 }
             }
@@ -175,8 +212,14 @@ public class Restore {
      * Sends a CHUNK message for the multicast data restore channel (MDR) with the following format:
      * CHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> <Body>
      */
-    public void deliverChunkMessage(Message message) {
-        Mailman mailman = new Mailman(message, peer.getMdr_ip(), peer.getMdr_port(), CHUNK, peer);
-        mailman.startMailmanThread();
+    public void deliverChunkMessage(Message newMessage, Message request) {
+        if(request.getMessageHeader().getVersion().equals("1.1")){
+            Mailman mailman = new Mailman(newMessage, request.getPacketIP().toString(), Integer.parseInt(request.getMessageHeader().getSenderId()), CHUNK, peer);
+            mailman.startMailmanThread();
+        }else{
+            Mailman mailman = new Mailman(newMessage, peer.getMdr_ip(), peer.getMdr_port(), CHUNK, peer);
+            mailman.startMailmanThread();
+        }
+
     }
 }

@@ -38,7 +38,7 @@ class TCA {
             Registry registry = LocateRegistry.getRegistry("localhost");
             testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
         } catch (Exception e) {
-            System.out.println("Failed to connect to peer:" + args[0]);
+            System.out.println("Failed to connect to peer:" + peerAccessPoint);
         }
 
     }
