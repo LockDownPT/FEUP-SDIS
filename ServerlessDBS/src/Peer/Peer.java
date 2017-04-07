@@ -76,7 +76,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         this.mdr_ip = mdr_ip;
         this.mdr_port = mdr_port;
         senderExecutor = Executors.newFixedThreadPool(5);
-        deliverExecutor = Executors.newFixedThreadPool(10);
+        deliverExecutor = Executors.newFixedThreadPool(11);
         receiverExecutor = Executors.newFixedThreadPool(5);
 
         MDB backupChannel = new MDB(mdb_ip, mdb_port, this);
@@ -97,10 +97,11 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         controlChannel.listen();
 
 
-        backup = new Backup(this);
+
         restoreProtocol = new Restore(this);
         deleteProtocol = new Delete(this);
         spaceReclaimProtocol = new SpaceReclaim(this);
+        backup = new Backup(this);
     }
 
     /***

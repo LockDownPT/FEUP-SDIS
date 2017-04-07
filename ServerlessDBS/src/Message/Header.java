@@ -63,6 +63,10 @@ public class Header {
         this.version = version;
     }
 
+    public String getVersion(){
+        return this.version;
+    }
+
     public String getSenderId() {
         return senderId;
     }

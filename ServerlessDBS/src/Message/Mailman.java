@@ -84,7 +84,8 @@ public class Mailman {
         try {
             socket = new DatagramSocket();
             byte[] buf = message.getMessageBytes(messageType);
-            InetAddress address = InetAddress.getByName(addr);
+            System.out.println("ADDRESS:" + addr.replace("/", ""));
+            InetAddress address = InetAddress.getByName(addr.replace("/", ""));
             packet = new DatagramPacket(buf, buf.length, address, port);
             socket.send(packet);
 
@@ -109,14 +110,13 @@ public class Mailman {
                 case STORED:
                     if (peer.getVersion().equals("1.0"))
                         peer.getBackup().deliverStoredMessage(message);
-                    else
+                    else {
                         peer.getBackup().deliverStoredMessageEnhanced(message);
+                        System.out.print("Enhanced BACKUP");
+                    }
                     break;
                 case GETCHUNK:
                     peer.getRestoreProtocol().deliverGetchunkMessage(message);
-                    break;
-                case CHUNK:
-                    peer.getRestoreProtocol().deliverChunkMessage(message);
                     break;
                 case DELETE:
                     peer.getDeleteProtocol().deliverDeleteMessage(message);
@@ -142,8 +142,10 @@ public class Mailman {
                     peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
                     if (peer.getVersion().equals("1.0"))
                         peer.getBackup().storeChunk(message);
-                    else
+                    else{
                         peer.getBackup().storeChunkEnhanced(message);
+                        System.out.print("Enhanced BACKUP");
+                    }
                     break;
                 case STORED:
                     peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());

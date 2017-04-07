@@ -7,8 +7,10 @@ import Peer.Peer;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.Map;
 
 import static Utilities.Constants.PUTCHUNK;
+import static Utilities.Constants.REMOVED;
 import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 
@@ -19,6 +21,7 @@ public class Backup {
     private String fileId;
     private Peer peer;
     private int numberOfChunks = 1;
+    private Runnable cleaner;
 
 
     public Backup(String file, int replicationDegree, Peer peer) {
@@ -26,11 +29,50 @@ public class Backup {
         this.replicationDegree = replicationDegree;
         this.fileId = null;
         this.peer = peer;
+        this.cleaner = new Cleaner();
+        if(!peer.getVersion().equals("1.0")){
+            //peer.getDeliverExecutor().submit(cleaner);
+        }
     }
 
     public Backup(Peer peer) {
         this.fileId = null;
         this.peer = peer;
+        this.cleaner = new Cleaner();
+        if(!peer.getVersion().equals("1.0")){
+            //peer.getDeliverExecutor().submit(cleaner);
+        }
+    }
+
+    public class Cleaner implements Runnable{
+        public void run() {
+            while (true){
+                try {
+                    Thread.sleep((long) (Math.random() * 1000));
+                    System.out.println("CLEANING");
+                    for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
+                        String chunkID = entry.getKey();
+                        int desiredRepDeg = Integer.parseInt(entry.getValue());
+                        int currentRepDeg = peer.getReplicationDegreeOfChunk(chunkID);
+                        if(currentRepDeg > desiredRepDeg){
+                            Message message = new Message(REMOVED, peer.getVersion(), peer.getPeerId(), peer.getFileIdFromChunkId(chunkID), peer.getChunkNoFromChunkId(chunkID));
+                            Mailman mailman = new Mailman(message, peer);
+                            mailman.startMailmanThread();
+                            peer.removeChunkFromStoredChunks(chunkID);
+                            peer.decreaseReplicationDegree(peer.getFileIdFromChunkId(chunkID), peer.getChunkNoFromChunkId(chunkID));
+                            peer.getSpaceReclaimProtocol().removeChunk(chunkID);
+
+                            System.out.println("REMOVING EXTRA CHUNK");
+                        }
+
+
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
 
@@ -53,6 +95,9 @@ public class Backup {
             if (availableSpace > message.getBody().length) {
                 OutputStream output = null;
                 try {
+                    Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    deliverStoredMessage(stored);
+
                     //Creates sub folders structure -> peerId/FileId/ChunkNo
                     File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
                     outFile.getParentFile().mkdirs();
@@ -66,19 +111,11 @@ public class Backup {
                     System.out.println("BODY SIZE: " + message.getBody().length);
                     output.write(message.getBody(), 0, message.getBody().length);
                     peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+                    output.close();
+                    peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
+                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    try {
-                        peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        deliverStoredMessage(stored);
-                        assert output != null;
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         }
@@ -90,9 +127,9 @@ public class Backup {
      */
     public void storeChunkEnhanced(Message message) {
         try {
-            Thread.sleep((long) (Math.random() * 3000));
+            Thread.sleep((long) (Math.random() * 1000));
             int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
-            int currentRepDeg = getPeer().getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+            int currentRepDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
             if (currentRepDeg < desiredRepDeg) {
                 storeChunk(message);
             }

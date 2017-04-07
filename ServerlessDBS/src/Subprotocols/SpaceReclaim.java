@@ -101,7 +101,7 @@ public class SpaceReclaim {
         }
     }
 
-    private void removeChunk(String chunkId) {
+    public void removeChunk(String chunkId) {
 
         System.out.println("CHUNK ID: " + chunkId);
 

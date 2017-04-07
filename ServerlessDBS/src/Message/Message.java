@@ -3,6 +3,8 @@ package Message;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 
 import static Utilities.Constants.*;
 
@@ -10,6 +12,8 @@ public class Message {
 
     private Header messageHeader;
     private byte[] body;
+    private InetAddress packetIP;
+    private int packetPort;
 
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree) {
         messageHeader = new Header(messageType, version, senderId, fileId, chunkNo, replicationDegree);
@@ -67,6 +71,8 @@ public class Message {
                 break;
             case "STORED":
             case "GETCHUNK":
+                setPacketIP(packet.getAddress());
+                setPacketPort(packet.getPort());
             case "REMOVED":
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
@@ -121,5 +127,19 @@ public class Message {
         this.body = body;
     }
 
+    public InetAddress getPacketIP() {
+        return packetIP;
+    }
 
+    public void setPacketIP(InetAddress packetIP) {
+        this.packetIP = packetIP;
+    }
+
+    public int getPacketPort() {
+        return packetPort;
+    }
+
+    public void setPacketPort(int packetPort) {
+        this.packetPort = packetPort;
+    }
 }
