@@ -59,7 +59,7 @@ public class Delete {
 
         }
 
-        peer.saveRepDegInfoToDisk();
+        peer.saveMetadataToDisk();
     }
 
     public void deleteChunks(String fileId) {

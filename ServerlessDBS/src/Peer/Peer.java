@@ -89,7 +89,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         dir.mkdir();
 
         //loads information about chunks replication degree (if such exists)
-        loadRepDegFromDisk();
+        loadMetadataFromDisk();
 
         //Launches a thread for each channel to listen for requests
         backupChannel.listen();
@@ -253,7 +253,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
 
-        saveRepDegInfoToDisk();
+        saveMetadataToDisk();
     }
 
     /**
@@ -269,20 +269,26 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(chunkId, String.valueOf(temp - 1));
         }
-        saveRepDegInfoToDisk();
+        saveMetadataToDisk();
     }
 
 
     /**
      * Saves information about chunks replication degree to non-volatile memory
      */
-    public void saveRepDegInfoToDisk() {
-        Properties properties = new Properties();
+    public void saveMetadataToDisk() {
+        Properties chunksRepDegProperties = new Properties();
+        Properties storedChunksProperties = new Properties();
+        Properties mapChunkIdProperties = new Properties();
 
-        properties.putAll(chunksReplicationDegree);
+        chunksRepDegProperties.putAll(chunksReplicationDegree);
+        storedChunksProperties.putAll(storedChunks);
+        mapChunkIdProperties.putAll(mapChunkIdToFileAndChunkNo);
 
         try {
-            properties.store(new FileOutputStream(peerId + "/chunksRepDeg.properties"), null);
+            chunksRepDegProperties.store(new FileOutputStream(peerId + "/chunksRepDeg.properties"), null);
+            storedChunksProperties.store(new FileOutputStream(peerId + "/storedChunks.properties"), null);
+            mapChunkIdProperties.store(new FileOutputStream(peerId + "/mapChunkId.properties"), null);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -291,19 +297,30 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     /**
      * Loads information about chunks replication degree (if such exists)
      */
-    private void loadRepDegFromDisk() {
+    private void loadMetadataFromDisk() {
 
-        File f = new File(peerId + "/chunksRepDeg.properties");
-        if (f.exists() && !f.isDirectory()) {
+        File chunksRepDegProperties = new File(peerId + "/chunksRepDeg.properties");
+        File storedChunksProperties = new File(peerId + "/storedChunks.properties");
+        File mapChunkIdProperties = new File(peerId + "/mapChunkId.properties");
+
+        loadDataFromFile(chunksRepDegProperties,peerId + "/chunksRepDeg.properties", chunksReplicationDegree);
+        loadDataFromFile(storedChunksProperties,peerId + "/storedChunks.properties", storedChunks);
+        loadDataFromFile(mapChunkIdProperties,peerId + "/mapChunkId.properties", mapChunkIdToFileAndChunkNo);
+
+
+    }
+
+    private void loadDataFromFile(File file, String filePath, Map data){
+        if (file.exists() && !file.isDirectory()) {
             Properties properties = new Properties();
             try {
-                properties.load(new FileInputStream(peerId + "/chunksRepDeg.properties"));
+                properties.load(new FileInputStream(filePath));
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             for (String key : properties.stringPropertyNames()) {
-                chunksReplicationDegree.put(key, properties.get(key).toString());
+                data.put(key, properties.get(key).toString());
             }
         }
     }
