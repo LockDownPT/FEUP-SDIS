@@ -8,10 +8,7 @@ import Subprotocols.Delete;
 import Subprotocols.Restore;
 import Subprotocols.SpaceReclaim;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,11 +37,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private ExecutorService receiverExecutor;
     private ExecutorService deliverExecutor;
 
-    /**
-     * String is the chunkId = fileId+ChunkNo
-     * String array has in the first element (String[0]) the fileId and in the second (String[1]) the ChunkNo
-     */
-    private Map<String, String[]> mapChunkIdToFileAndChunkNo = new ConcurrentHashMap<>();
     /**
      * String is a par of fileId+chunkNo
      * String holds the desired replication degree
@@ -102,6 +94,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         deleteProtocol = new Delete(this);
         spaceReclaimProtocol = new SpaceReclaim(this);
         backup = new Backup(this);
+
+        loadMetadataFromDisk();
     }
 
     /***
@@ -232,7 +226,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public void addChunkToRegistry(String fileId, String chunkNo, String desiredReplicationDegree) {
 
         this.storedChunks.put(fileId + chunkNo, desiredReplicationDegree);
-        this.addChunkIdToRegistry(fileId, chunkNo);
 
     }
 
@@ -243,7 +236,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     public void increaseReplicationDegree(String fileId, String chunkNo) {
         String chunkId = fileId + chunkNo;
-        addChunkIdToRegistry(fileId, chunkNo);
         String currentReplicationDegree = chunksReplicationDegree.get(chunkId);
 
         if (currentReplicationDegree == null) {
@@ -279,19 +271,41 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public void saveMetadataToDisk() {
         Properties chunksRepDegProperties = new Properties();
         Properties storedChunksProperties = new Properties();
-        Properties mapChunkIdProperties = new Properties();
 
         chunksRepDegProperties.putAll(chunksReplicationDegree);
         storedChunksProperties.putAll(storedChunks);
-        mapChunkIdProperties.putAll(mapChunkIdToFileAndChunkNo);
 
         try {
             chunksRepDegProperties.store(new FileOutputStream(peerId + "/chunksRepDeg.properties"), null);
             storedChunksProperties.store(new FileOutputStream(peerId + "/storedChunks.properties"), null);
-            mapChunkIdProperties.store(new FileOutputStream(peerId + "/mapChunkId.properties"), null);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Properties diskInfo = new Properties();
+        OutputStream output = null;
+
+        try{
+            output = new FileOutputStream(peerId + "/diskInfo.properties");
+            diskInfo.setProperty("Used Space", Integer.toString(usedSpace));
+            diskInfo.setProperty("Disk Size", Integer.toString(diskSpace));
+
+            diskInfo.store(output,null);
+
+        } catch (IOException e){
+            e.printStackTrace();
+        } finally {
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+
     }
 
     /**
@@ -301,11 +315,22 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
         File chunksRepDegProperties = new File(peerId + "/chunksRepDeg.properties");
         File storedChunksProperties = new File(peerId + "/storedChunks.properties");
-        File mapChunkIdProperties = new File(peerId + "/mapChunkId.properties");
 
         loadDataFromFile(chunksRepDegProperties,peerId + "/chunksRepDeg.properties", chunksReplicationDegree);
         loadDataFromFile(storedChunksProperties,peerId + "/storedChunks.properties", storedChunks);
-        loadDataFromFile(mapChunkIdProperties,peerId + "/mapChunkId.properties", mapChunkIdToFileAndChunkNo);
+
+        File diskInfo = new File(peerId + "/diskInfo.properties");
+
+        if (diskInfo.exists() && !diskInfo.isDirectory()) {
+            Properties properties = new Properties();
+            try {
+                properties.load(new FileInputStream(peerId + "/diskInfo.properties"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            usedSpace = Integer.parseInt(properties.getProperty("Used Space"));
+            diskSpace = Integer.parseInt(properties.getProperty("Disk Size"));
+        }
 
 
     }
@@ -425,23 +450,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return spaceReclaimProtocol;
     }
 
-    private void addChunkIdToRegistry(String fileId, String chunkNo) {
-        String[] parFileIdChunkNo = new String[2];
-        parFileIdChunkNo[0] = fileId;
-        parFileIdChunkNo[1] = chunkNo;
-        this.mapChunkIdToFileAndChunkNo.put(fileId + chunkNo, parFileIdChunkNo);
-    }
-
-    public Map<String, String[]> getMapChunkIdToFileAndChunkNo() {
-        return mapChunkIdToFileAndChunkNo;
-    }
 
     public void removeChunkFromStoredChunks(String chunkID) {
         this.storedChunks.remove(chunkID);
-    }
-
-    public void removeMapingChunkIdToFileAndChunkNo(String chunkId) {
-        this.mapChunkIdToFileAndChunkNo.remove(chunkId);
     }
 
     public void removeFromChunksReplicationDegree(String chunkId) {
@@ -465,11 +476,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     }
 
     public String getFileIdFromChunkId(String chunkId) {
-        return mapChunkIdToFileAndChunkNo.get(chunkId)[0];
+
+        return chunkId.substring(0, 64);
     }
 
     public String getChunkNoFromChunkId(String chunkId) {
-        return mapChunkIdToFileAndChunkNo.get(chunkId)[1];
+        return chunkId.substring(64, chunkId.length());
     }
 
     public int getStorageSpace() {
@@ -532,4 +544,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return deleteProtocol;
     }
 
+    public Map<String, String> getChunksReplicationDegree() {
+        return chunksReplicationDegree;
+    }
 }
+
