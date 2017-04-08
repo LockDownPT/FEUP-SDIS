@@ -477,10 +477,13 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     public String getFileIdFromChunkId(String chunkId) {
 
+        System.out.print("FILE ID: " + chunkId.substring(0, 64));
         return chunkId.substring(0, 64);
     }
 
     public String getChunkNoFromChunkId(String chunkId) {
+
+        System.out.println("CHUNK NO: " + chunkId.substring(64, chunkId.length()));
         return chunkId.substring(64, chunkId.length());
     }
 

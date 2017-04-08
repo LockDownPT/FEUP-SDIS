@@ -21,60 +21,18 @@ public class Backup {
     private String fileId;
     private Peer peer;
     private int numberOfChunks = 1;
-    private Runnable cleaner;
-
 
     public Backup(String file, int replicationDegree, Peer peer) {
         this.fileName = file;
         this.replicationDegree = replicationDegree;
         this.fileId = null;
         this.peer = peer;
-        this.cleaner = new Cleaner();
-        if(!peer.getVersion().equals("1.0")){
-            //peer.getDeliverExecutor().submit(cleaner);
-        }
     }
 
     public Backup(Peer peer) {
         this.fileId = null;
         this.peer = peer;
-        this.cleaner = new Cleaner();
-        if(!peer.getVersion().equals("1.0")){
-            //peer.getDeliverExecutor().submit(cleaner);
-        }
     }
-
-    public class Cleaner implements Runnable{
-        public void run() {
-            while (true){
-                try {
-                    Thread.sleep((long) (Math.random() * 1000));
-                    System.out.println("CLEANING");
-                    for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
-                        String chunkID = entry.getKey();
-                        int desiredRepDeg = Integer.parseInt(entry.getValue());
-                        int currentRepDeg = peer.getReplicationDegreeOfChunk(chunkID);
-                        if(currentRepDeg > desiredRepDeg){
-                            Message message = new Message(REMOVED, peer.getVersion(), peer.getPeerId(), peer.getFileIdFromChunkId(chunkID), peer.getChunkNoFromChunkId(chunkID));
-                            Mailman mailman = new Mailman(message, peer);
-                            mailman.startMailmanThread();
-                            peer.removeChunkFromStoredChunks(chunkID);
-                            peer.decreaseReplicationDegree(peer.getFileIdFromChunkId(chunkID), peer.getChunkNoFromChunkId(chunkID));
-                            peer.getSpaceReclaimProtocol().removeChunk(chunkID);
-
-                            System.out.println("REMOVING EXTRA CHUNK");
-                        }
-
-
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-    }
-
 
     public void sendChunk(byte[] chunk, int chunkNo) {
 
@@ -95,9 +53,6 @@ public class Backup {
             if (availableSpace > message.getBody().length) {
                 OutputStream output = null;
                 try {
-                    Message stored = new Message(STORED, "1.0", peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                    deliverStoredMessage(stored);
-
                     //Creates sub folders structure -> peerId/FileId/ChunkNo
                     File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
                     outFile.getParentFile().mkdirs();
@@ -111,11 +66,19 @@ public class Backup {
                     System.out.println("BODY SIZE: " + message.getBody().length);
                     output.write(message.getBody(), 0, message.getBody().length);
                     peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
-                    output.close();
-                    peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    try {
+                        peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
+                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        deliverStoredMessage(stored);
+                        assert output != null;
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -215,15 +178,16 @@ public class Backup {
 
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            int numSplits = (int) (fileLength / maxSizeChunk);
+            int numSplits = (int) Math.floor(fileLength / maxSizeChunk);
             int lastChunkSize = (int) (fileLength - (maxSizeChunk * numSplits));
+            numSplits++;
 
             System.out.println(fileLength);
             System.out.println((int) maxSizeChunk);
             System.out.println(numSplits);
             System.out.println(lastChunkSize);
 
-            for (int chunkId = 1; chunkId <= numSplits; chunkId++) {
+            for (int chunkId = 1; chunkId < numSplits; chunkId++) {
 
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
@@ -238,7 +202,9 @@ public class Backup {
                 byte[] buf = new byte[(int) (long) lastChunkSize];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    sendChunk(buf, chunkNo + 1);
+                    System.out.println("LASTCHUNK Size: " + lastChunkSize);
+                    System.out.println("BUF length: "+ buf.length);
+                    sendChunk(buf, chunkNo);
                 }
                 this.numberOfChunks++;
             }

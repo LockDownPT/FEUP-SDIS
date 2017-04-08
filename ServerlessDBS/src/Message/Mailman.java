@@ -51,15 +51,12 @@ public class Mailman {
         switch (type) {
             case "SENDER":
                 peer.getSenderExecutor().submit(mailman);
-                System.out.println("SENDER");
                 break;
             case "RECEIVER":
                 peer.getReceiverExecutor().submit(mailman);
-                System.out.println("RECEIVER");
                 break;
             case "DELIVER":
                 peer.getDeliverExecutor().submit(mailman);
-                System.out.println("DELIVER");
                 break;
             default:
                 break;
@@ -84,7 +81,6 @@ public class Mailman {
         try {
             socket = new DatagramSocket();
             byte[] buf = message.getMessageBytes(messageType);
-            System.out.println("ADDRESS:" + addr.replace("/", ""));
             InetAddress address = InetAddress.getByName(addr.replace("/", ""));
             packet = new DatagramPacket(buf, buf.length, address, port);
             socket.send(packet);
@@ -133,7 +129,6 @@ public class Mailman {
 
     public class ReceiverThread implements Runnable {
         public void run() {
-            System.out.println("Received request:" + message.getMessageHeader().getMessageType());
             //Ignores requests sent by itself
             if (message.getMessageHeader().getSenderId().equals(peer.getPeerId()))
                 return;
@@ -144,7 +139,6 @@ public class Mailman {
                         peer.getBackup().storeChunk(message);
                     else{
                         peer.getBackup().storeChunkEnhanced(message);
-                        System.out.print("Enhanced BACKUP");
                     }
                     break;
                 case STORED:

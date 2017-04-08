@@ -53,7 +53,7 @@ public class Restore {
             } catch (SocketException e) {
                 e.printStackTrace();
             }
-            byte[] buf = new byte[256];
+            byte[] buf = new byte[70000];
             packet = new DatagramPacket(buf, buf.length);
 
             while(true){
@@ -75,7 +75,7 @@ public class Restore {
         System.out.println("Gathering file info");
         getFileInfo();
 
-        if(!peer.getVersion().equals("1.0")){
+        if(peer.getVersion().equals("1.1")){
             this.restoreEnhanced = new RestoreEnhanced();
             peer.getDeliverExecutor().submit(restoreEnhanced);
 
@@ -110,7 +110,7 @@ public class Restore {
         try {
             fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            this.numberOfChunks = (int) Math.ceil(fileLength / maxSizeChunk);
+            this.numberOfChunks = (int) Math.floor(fileLength / maxSizeChunk)+1;
             int lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
         } catch (IOException e) {
             e.printStackTrace();
@@ -136,8 +136,11 @@ public class Restore {
 
         FileOutputStream fop = null;
         File file;
+        File dir;
         try {
-            file = new File("./" + fileName);
+            dir = new File("./" + peer.getPeerId() + "/Restored Files");
+            dir.mkdir();
+            file = new File("./" + peer.getPeerId() + "/Restored Files/" + fileName);
             fop = new FileOutputStream(file, true);
             for (int i = 1; i <= chunks.size(); i++) {
                 System.out.println((chunks.get(Integer.toString(i))).length);
@@ -213,7 +216,7 @@ public class Restore {
      * CHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> <Body>
      */
     public void deliverChunkMessage(Message newMessage, Message request) {
-        if(request.getMessageHeader().getVersion().equals("1.1")){
+        if(request.getMessageHeader().getVersion().equals("1.1") && peer.getVersion().equals("1.1")){
             Mailman mailman = new Mailman(newMessage, request.getPacketIP().toString(), Integer.parseInt(request.getMessageHeader().getSenderId()), CHUNK, peer);
             mailman.startMailmanThread();
         }else{
