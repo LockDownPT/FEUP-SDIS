@@ -5,7 +5,9 @@ import Message.Message;
 import Peer.Peer;
 
 import java.io.*;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,9 +29,13 @@ public class Restore {
     private int numberOfChunks = 0;
     private int restoredChunks = 0;
     private String fileId;
-    private Runnable restoreEnhanced;
+    /* Socket to be used in enhanced protocol (version: 1.1) */
+    private Socket enhancedSocket;
     private ServerSocket listener;
-    private PrintWriter out;
+    /* Socket ouput for enhanced protocol (version: 1.1) */
+    private OutputStream out = null;
+    private DataOutputStream dos = null;
+    private boolean tcpConnected = false;
 
     public Restore(String file, Peer peer) {
 
@@ -42,54 +48,14 @@ public class Restore {
         this.peer = peer;
     }
 
-    public class RestoreEnhanced implements Runnable{
-
-        private Socket socket;
-
-        public RestoreEnhanced(Socket socket){
-            this.socket=socket;
-        }
-
-        public void run() {
-
-            try{
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-
-                String request = in.readLine();
-
-                Message requestMessage = new Message(request.getBytes());
-
-                saveChunk(requestMessage);
-
-            } catch (IOException e){
-                e.printStackTrace();
-            }finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    System.out.println("Error closing a socket");
-                }
-            }
-
-        }
-    }
-
     public void start() {
 
         System.out.println("Gathering file info");
         getFileInfo();
 
-        if(peer.getVersion().equals("1.1")){
-            try{
-                while(true){
-                    listener = new ServerSocket(peer.getMdr_port());
-                    new RestoreEnhanced(listener.accept());
-                    peer.getDeliverExecutor().submit(restoreEnhanced);
-                }
-            } catch (IOException e){
-                e.printStackTrace();
-            }
+        if (peer.getVersion().equals("1.1")) {
+            Runnable enhancedRestore = new RestoreEnhanced();
+            peer.getDeliverExecutor().submit(enhancedRestore);
         }
 
         System.out.print("Requesting chunks");
@@ -121,8 +87,7 @@ public class Restore {
         try {
             fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
-            this.numberOfChunks = (int) Math.floor(fileLength / maxSizeChunk)+1;
-            int lastChunkSize = (int) (fileLength - (maxSizeChunk * this.numberOfChunks));
+            this.numberOfChunks = (int) Math.floor(fileLength / maxSizeChunk) + 1;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -188,7 +153,6 @@ public class Restore {
                     Message chunk = new Message(CHUNK, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
                     chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo()));
                     deliverChunkMessage(chunk, message);
-                    System.out.println("Sent CHUNK");
                 }
             }
         }
@@ -227,13 +191,90 @@ public class Restore {
      * CHUNK <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> <Body>
      */
     public void deliverChunkMessage(Message newMessage, Message request) {
-        if(request.getMessageHeader().getVersion().equals("1.1") && peer.getVersion().equals("1.1")){
-            Mailman mailman = new Mailman(newMessage, request.getPacketIP().toString(), Integer.parseInt(request.getMessageHeader().getSenderId()), CHUNK, peer);
-            mailman.startMailmanThread();
-        }else{
+        if (request.getMessageHeader().getVersion().equals("1.1") && peer.getVersion().equals("1.1")) {
+
+            if(!tcpConnected){
+                connectToServerSocket(request.getPacketIP(),peer.getMdr_port());
+                tcpConnected = true;
+            }
+
+            try {
+                while(enhancedSocket.getInputStream().available()!=0){
+                    System.out.println("Waiting for socket to be empty");
+                }
+                dos.writeInt(newMessage.getMessageBytes(CHUNK).length);
+                dos.write(newMessage.getMessageBytes(CHUNK));
+                System.out.println("SENT CHUNK " + request.getMessageHeader().getChunkNo());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
             Mailman mailman = new Mailman(newMessage, peer.getMdr_ip(), peer.getMdr_port(), CHUNK, peer);
             mailman.startMailmanThread();
+            System.out.println("Sent CHUNK: " + request.getMessageHeader().getChunkNo());
         }
 
+    }
+
+    public void connectToServerSocket(InetAddress ip, int port) {
+        System.out.println("TCP ip: " + ip);
+        System.out.println("TCP port: " + port);
+        try {
+            enhancedSocket = new Socket(ip,port);
+            out = enhancedSocket.getOutputStream();
+            dos = new DataOutputStream(out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class RestoreEnhanced implements Runnable {
+
+        public void run() {
+            System.out.println("Connecting to socket");
+            try {
+                listener = new ServerSocket(peer.getMdr_port());
+                System.out.println("Connected to socket");
+                while (true) {
+                    Runnable requestHandler = new RequestHandler(listener.accept());
+                    peer.getDeliverExecutor().submit(requestHandler);
+                    System.out.println("RECEIVED CHUNK");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    public class RequestHandler implements Runnable {
+
+        private Socket socket;
+
+        public RequestHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        public void run() {
+            System.out.println("REQUEST HANDLER STARTED");
+            while(true){
+                try {
+                    InputStream in = socket.getInputStream();
+                    DataInputStream dis = new DataInputStream(in);
+
+                    int len = dis.readInt();
+                    byte[] data = new byte[len];
+                    if (len > 0) {
+                        dis.readFully(data);
+                    }
+
+                    Message requestMessage = new Message(data);
+                    saveChunk(requestMessage);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

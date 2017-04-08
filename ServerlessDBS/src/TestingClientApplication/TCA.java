@@ -35,8 +35,6 @@ class TCA {
                 break;
         }
         try {
-            //registry = LocateRegistry.createRegistry(2525);
-            //Server stub = (Server) UnicastRemoteObject.exportObject(defaultServer, 2525);
             Registry registry = LocateRegistry.getRegistry("localhost");
             testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
         } catch (Exception e) {
