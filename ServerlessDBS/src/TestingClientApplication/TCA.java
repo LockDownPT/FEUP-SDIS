@@ -7,48 +7,88 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class TCA {
+class TCA {
 
-    private String peerAccessPoint;
-    private String protocol;
     private String file;
     private int replicationDegree;
     private PeerInterface testingPeer;
+    private int spaceReclaimValue;
 
-    public TCA(String[] args){
+    private TCA(String[] args) {
 
-        peerAccessPoint=args[0];
-        protocol=args[1];
-        file=args[2];
-        replicationDegree=Integer.parseInt(args[3]);
+        String peerAccessPoint = args[0];
+        String protocol = args[1];
 
+        switch (protocol) {
+            case "BACKUP":
+                replicationDegree = Integer.parseInt(args[3]);
+            case "RESTORE":
+                file = args[2];
+                break;
+            case "DELETE":
+                file = args[2];
+                break;
+            case "SPACERECLAIM":
+                spaceReclaimValue = Integer.parseInt(args[2]);
+                break;
+            default:
+                break;
+        }
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
             testingPeer = (PeerInterface) registry.lookup(peerAccessPoint);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Failed to connect to peer:" + peerAccessPoint);
         }
 
-    }
-
-    public void testBackup() throws RemoteException {
-        testingPeer.backup(file,replicationDegree);
-    }
-
-    public void testRestore() throws RemoteException {
-        testingPeer.restore(file);
     }
 
     public static void main(String[] args) throws RemoteException {
 
         String protocol = args[1];
         TCA testApplication = new TCA(args);
-        if(protocol.equals("BACKUP")){
-            testApplication.testBackup();
-        } else if(protocol.equals("RESTORE")){
-            testApplication.testRestore();
+        switch (protocol) {
+            case "BACKUP":
+                testApplication.testBackup();
+                break;
+            case "RESTORE":
+                testApplication.testRestore();
+                break;
+            case "STATE":
+                testApplication.state();
+                break;
+            case "DELETE":
+                testApplication.testDelete();
+                break;
+            case "SPACERECLAIM":
+                testApplication.spaceReclaim();
+                break;
+            default:
+                System.out.println("WRONG PROTOCOL");
+                break;
         }
 
+    }
+
+    private void testBackup() throws RemoteException {
+        testingPeer.backup(file, replicationDegree);
+    }
+
+    private void testRestore() throws RemoteException {
+        testingPeer.restore(file);
+    }
+
+
+    private void testDelete() throws RemoteException {
+        testingPeer.delete(file);
+    }
+
+    private void spaceReclaim() throws RemoteException {
+        testingPeer.spaceReclaim(spaceReclaimValue);
+    }
+
+    private void state() throws RemoteException {
+        testingPeer.state();
     }
 
 }
