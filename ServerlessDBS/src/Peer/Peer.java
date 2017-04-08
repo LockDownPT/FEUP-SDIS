@@ -444,6 +444,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+    public void removeChunkFromSentChunks(String fileId, String chunkNo){
+        sentChunks.remove(fileId+chunkNo);
+    }
+
     public Map<String, String> getStoredChunks() {
         return storedChunks;
     }

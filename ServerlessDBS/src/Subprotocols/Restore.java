@@ -154,6 +154,7 @@ public class Restore {
                     chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo()));
                     deliverChunkMessage(chunk, message);
                 }
+                peer.removeChunkFromSentChunks(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
             }
         }
     }
