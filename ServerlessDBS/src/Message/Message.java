@@ -40,6 +40,46 @@ public class Message {
 
     }
 
+    public Message(byte[] message) {
+
+        messageHeader = new Header();
+        try {
+            getMessageFromBytes(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void getMessageFromBytes(byte[] bytes) throws IOException {
+
+        int length=bytes.length;
+        ByteArrayInputStream message = new ByteArrayInputStream(bytes);
+
+        StringBuilder header = new StringBuilder();
+        byte character;
+        while ((character = (byte) message.read()) != CR) {
+            header.append((char) character);
+        }
+
+        if ((byte) message.read() != LF || (byte) message.read() != CR || (byte) message.read() != LF) {
+            throw new IOException("Wrong Header Format.");
+        }
+
+        String[] requestHeader = header.toString().split(" ");
+
+        messageHeader.setMessageType(requestHeader[0]);
+        byte[] bodyContent;
+        messageHeader.setVersion(requestHeader[1]);
+        messageHeader.setSenderId(requestHeader[2]);
+        messageHeader.setFileId(requestHeader[3]);
+        messageHeader.setChunkNo(requestHeader[4]);
+        bodyContent = new byte[length - header.length() - 4];
+        message.read(bodyContent);
+        setBody(bodyContent);
+
+    }
+
     private void getMessageFromPacket(DatagramPacket packet) throws IOException {
 
         ByteArrayInputStream message = new ByteArrayInputStream(packet.getData());
@@ -70,10 +110,10 @@ public class Message {
                 System.out.println("Setting body content: " + bodyContent.length);
                 setBody(bodyContent);
                 break;
-            case "STORED":
             case "GETCHUNK":
                 setPacketIP(packet.getAddress());
                 setPacketPort(packet.getPort());
+            case "STORED":
             case "REMOVED":
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);

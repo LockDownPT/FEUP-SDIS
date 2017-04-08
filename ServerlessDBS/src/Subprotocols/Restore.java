@@ -4,13 +4,8 @@ import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.io.*;
+import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,11 +28,14 @@ public class Restore {
     private int restoredChunks = 0;
     private String fileId;
     private Runnable restoreEnhanced;
+    private ServerSocket listener;
+    private PrintWriter out;
 
     public Restore(String file, Peer peer) {
 
         fileName = file;
         this.peer = peer;
+
     }
 
     public Restore(Peer peer) {
@@ -45,25 +43,32 @@ public class Restore {
     }
 
     public class RestoreEnhanced implements Runnable{
-        public void run() {
-            DatagramPacket packet;
-            DatagramSocket socket = null;
-            try {
-                socket = new DatagramSocket(Integer.parseInt(peer.getPeerId()));
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
-            byte[] buf = new byte[70000];
-            packet = new DatagramPacket(buf, buf.length);
 
-            while(true){
-                //if the client does receive an answer in the given timeout, it resends the packet
+        private Socket socket;
+
+        public RestoreEnhanced(Socket socket){
+            this.socket=socket;
+        }
+
+        public void run() {
+
+            try{
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+                String request = in.readLine();
+
+                Message requestMessage = new Message(request.getBytes());
+
+                saveChunk(requestMessage);
+
+            } catch (IOException e){
+                e.printStackTrace();
+            }finally {
                 try {
-                    socket.receive(packet);
-                    Message chunk = new Message(packet);
-                    saveChunk(chunk);
+                    socket.close();
                 } catch (IOException e) {
-                    System.out.println("RECEIVED CHUNK");
+                    System.out.println("Error closing a socket");
                 }
             }
 
@@ -76,9 +81,15 @@ public class Restore {
         getFileInfo();
 
         if(peer.getVersion().equals("1.1")){
-            this.restoreEnhanced = new RestoreEnhanced();
-            peer.getDeliverExecutor().submit(restoreEnhanced);
-
+            try{
+                while(true){
+                    listener = new ServerSocket(peer.getMdr_port());
+                    new RestoreEnhanced(listener.accept());
+                    peer.getDeliverExecutor().submit(restoreEnhanced);
+                }
+            } catch (IOException e){
+                e.printStackTrace();
+            }
         }
 
         System.out.print("Requesting chunks");
