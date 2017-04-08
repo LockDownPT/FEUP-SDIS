@@ -107,7 +107,6 @@ public class Message {
                 messageHeader.setReplicationDeg(requestHeader[5]);
                 bodyContent = new byte[packet.getLength() - header.length() - 4];
                 message.read(bodyContent);
-                System.out.println("Setting body content: " + bodyContent.length);
                 setBody(bodyContent);
                 break;
             case "GETCHUNK":

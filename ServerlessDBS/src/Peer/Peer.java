@@ -71,7 +71,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         this.mdr_port = mdr_port;
         senderExecutor = Executors.newFixedThreadPool(5);
         deliverExecutor = Executors.newFixedThreadPool(11);
-        receiverExecutor = Executors.newFixedThreadPool(5);
+        receiverExecutor = Executors.newFixedThreadPool(10);
 
         MDB backupChannel = new MDB(mdb_ip, mdb_port, this);
         MDR restoreChannel = new MDR(mdr_ip, mdr_port, this);
@@ -246,8 +246,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
-
-        saveMetadataToDisk();
+       saveMetadataToDisk();
     }
 
     /**

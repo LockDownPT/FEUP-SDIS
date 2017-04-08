@@ -104,9 +104,9 @@ public class Mailman {
                     peer.getBackup().deliverPutchunkMessage(message);
                     break;
                 case STORED:
-                    if (peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0")){
                         peer.getBackup().deliverStoredMessage(message);
-                    else {
+                    }else {
                         peer.getBackup().deliverStoredMessageEnhanced(message);
                         System.out.print("Enhanced BACKUP");
                     }
@@ -135,9 +135,9 @@ public class Mailman {
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
                     peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
-                    if (peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0")){
                         peer.getBackup().storeChunk(message);
-                    else{
+                    }else{
                         peer.getBackup().storeChunkEnhanced(message);
                     }
                     break;

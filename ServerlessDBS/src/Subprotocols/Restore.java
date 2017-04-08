@@ -194,13 +194,13 @@ public class Restore {
     public void deliverChunkMessage(Message newMessage, Message request) {
         if (request.getMessageHeader().getVersion().equals("1.1") && peer.getVersion().equals("1.1")) {
 
-            if(!tcpConnected){
-                connectToServerSocket(request.getPacketIP(),peer.getMdr_port());
+            if (!tcpConnected) {
+                connectToServerSocket(request.getPacketIP(), peer.getMdr_port());
                 tcpConnected = true;
             }
 
             try {
-                while(enhancedSocket.getInputStream().available()!=0){
+                while (enhancedSocket.getInputStream().available() != 0) {
                     System.out.println("Waiting for socket to be empty");
                 }
                 dos.writeInt(newMessage.getMessageBytes(CHUNK).length);
@@ -221,7 +221,7 @@ public class Restore {
         System.out.println("TCP ip: " + ip);
         System.out.println("TCP port: " + port);
         try {
-            enhancedSocket = new Socket(ip,port);
+            enhancedSocket = new Socket(ip, port);
             out = enhancedSocket.getOutputStream();
             dos = new DataOutputStream(out);
         } catch (IOException e) {
@@ -258,7 +258,7 @@ public class Restore {
 
         public void run() {
             System.out.println("REQUEST HANDLER STARTED");
-            while(true){
+            while (true) {
                 try {
                     InputStream in = socket.getInputStream();
                     DataInputStream dis = new DataInputStream(in);

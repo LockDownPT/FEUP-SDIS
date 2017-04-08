@@ -7,10 +7,8 @@ import Peer.Peer;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 
 import static Utilities.Constants.PUTCHUNK;
-import static Utilities.Constants.REMOVED;
 import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 
@@ -43,7 +41,6 @@ public class Backup {
 
     }
 
-
     /**
      * If the peer doesn't have the chunk and it has enough space,
      * it will store the chunk and send a STORED message for the sender
@@ -52,6 +49,12 @@ public class Backup {
         if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
             long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
             if (availableSpace > message.getBody().length) {
+                Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                if(peer.getVersion().equals("1.1")){
+                    deliverStoredMessageEnhanced(stored);
+                }else{
+                    deliverStoredMessage(stored);
+                }
                 OutputStream output = null;
                 try {
                     //Creates sub folders structure -> peerId/FileId/ChunkNo
@@ -64,7 +67,6 @@ public class Backup {
                 }
                 try {
                     assert output != null;
-                    System.out.println("BODY SIZE: " + message.getBody().length);
                     output.write(message.getBody(), 0, message.getBody().length);
                     peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
                 } catch (IOException e) {
@@ -73,8 +75,6 @@ public class Backup {
                     try {
                         peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
                         peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        deliverStoredMessage(stored);
                         assert output != null;
                         output.close();
                     } catch (IOException e) {
@@ -90,15 +90,17 @@ public class Backup {
      * If the replication degree of the chunk is already achieved it doesn't store it
      */
     public void storeChunkEnhanced(Message message) {
-        try {
-            Thread.sleep((long) (Math.random() * 1000));
-            int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
-            int currentRepDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-            if (currentRepDeg < desiredRepDeg) {
-                storeChunk(message);
+        if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+            try {
+                Thread.sleep((long) (Math.random() * 1500));
+                int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
+                int currentRepDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                if (currentRepDeg < desiredRepDeg) {
+                    storeChunk(message);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -197,6 +199,7 @@ public class Backup {
                 }
                 chunkNo++;
                 this.numberOfChunks++;
+
             }
             if (lastChunkSize >= 0) {
 
@@ -204,7 +207,7 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if (val != -1) {
                     System.out.println("LASTCHUNK Size: " + lastChunkSize);
-                    System.out.println("BUF length: "+ buf.length);
+                    System.out.println("BUF length: " + buf.length);
                     sendChunk(buf, chunkNo);
                 }
                 this.numberOfChunks++;
