@@ -30,9 +30,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private String mc_ip, mdb_ip, mdr_ip;
     private int mc_port, mdb_port, mdr_port;
     private String peerId;
+    private String peerAccessPoint;
     private String version;
     private int usedSpace = 0;
-    private int diskSpace = 10 * 64000;
+    private int diskSpace = 100 * 64000;
     private ExecutorService senderExecutor;
     private ExecutorService receiverExecutor;
     private ExecutorService deliverExecutor;
@@ -56,11 +57,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     private Map<String, Boolean> sentChunks = new ConcurrentHashMap<>();
 
 
-    public Peer(String version, String peerId, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
+    public Peer(String version, String peerId, String peerAccessPoint, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
         super();
 
         this.version = version;
         this.peerId = peerId;
+        this.peerAccessPoint=peerAccessPoint;
         this.mc_ip = mc_ip;
         this.mc_port = mc_port;
         this.mdb_ip = mdb_ip;
@@ -541,6 +543,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     public String getVersion() {
         return version;
+    }
+
+    public String getPeerAccessPoint() {
+        return peerAccessPoint;
     }
 
     public Delete getDeleteProtocol() {
