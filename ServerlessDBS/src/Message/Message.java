@@ -17,12 +17,13 @@ public class Message {
     /**
      * Message constructor for PUTCHUNKS messages
      * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF>
+     *
      * @param messageType       indicates message type
      * @param version           indicates the version of the peer that sends the message
      * @param senderId          indicates the sender id
      * @param fileId            indicates the file id
      * @param chunkNo           indicate the chunk number
-     * @param replicationDegree    indicates the desired replication degree
+     * @param replicationDegree indicates the desired replication degree
      */
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo, String replicationDegree) {
         messageHeader = new Header(messageType, version, senderId, fileId, chunkNo, replicationDegree);
@@ -32,11 +33,12 @@ public class Message {
     /**
      * Message header for CHUNK, GETCHUNK and STORED messages
      * <MessageType> <Version> <SenderId> <FileId> <ChunkNo><CRLF>
-     * @param messageType       indicates message type
-     * @param version           indicates the version of the peer that sends the message
-     * @param senderId          indicates the sender id
-     * @param fileId            indicates the file id
-     * @param chunkNo           indicate the chunk number
+     *
+     * @param messageType indicates message type
+     * @param version     indicates the version of the peer that sends the message
+     * @param senderId    indicates the sender id
+     * @param fileId      indicates the file id
+     * @param chunkNo     indicate the chunk number
      */
     public Message(String messageType, String version, String senderId, String fileId, String chunkNo) {
         messageHeader = new Header(messageType, version, senderId, fileId, chunkNo);
@@ -45,10 +47,11 @@ public class Message {
     /**
      * Message header for DELETE messages
      * <MessageType> <Version> <SenderId> <FileId> <CRLF>
-     * @param messageType       indicates message type
-     * @param version           indicates the version of the peer that sends the message
-     * @param senderId          indicates the sender id
-     * @param fileId            indicates the file id
+     *
+     * @param messageType indicates message type
+     * @param version     indicates the version of the peer that sends the message
+     * @param senderId    indicates the sender id
+     * @param fileId      indicates the file id
      */
     public Message(String messageType, String version, String senderId, String fileId) {
         messageHeader = new Header(messageType, version, senderId, fileId);
@@ -57,6 +60,7 @@ public class Message {
 
     /**
      * Constructs a message from a datagram packet
+     *
      * @param packet packet received from the multicast
      */
     public Message(DatagramPacket packet) {
@@ -72,6 +76,7 @@ public class Message {
 
     /**
      * Constructs a message from byte array
+     *
      * @param message byte array
      */
     public Message(byte[] message) {
@@ -87,6 +92,7 @@ public class Message {
 
     /**
      * Constructs message header and body from byte array
+     *
      * @param bytes buffer array
      * @throws IOException
      */
@@ -121,6 +127,7 @@ public class Message {
 
     /**
      * Constructs message header and body from datagram packet
+     *
      * @param packet datagram packet
      * @throws IOException
      */

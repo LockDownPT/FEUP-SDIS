@@ -39,7 +39,7 @@ public class SpaceReclaim {
         }
 
         if ((freeSpace - this.spaceToBeReduced) >= 0) {
-            System.out.println("FREE SPACE: "+ freeSpace);
+            System.out.println("FREE SPACE: " + freeSpace);
             peer.setStorageSpace(storageSpace - spaceToBeReduced);
             peer.saveMetadataToDisk();
             return false;

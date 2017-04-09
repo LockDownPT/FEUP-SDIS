@@ -11,9 +11,10 @@ public class MDR extends Channel {
 
     /**
      * Multicast Data Restore channel
+     *
      * @param address multicast address
-     * @param port multicast port
-     * @param peer  peer that listens on the multicast
+     * @param port    multicast port
+     * @param peer    peer that listens on the multicast
      * @throws IOException
      */
     public MDR(String address, int port, Peer peer) throws IOException {
@@ -21,7 +22,7 @@ public class MDR extends Channel {
         setThread(new MDR.MDRThread());
 
     }
-    
+
     /**
      * Channel thread that concurrently listens for incoming packets
      */

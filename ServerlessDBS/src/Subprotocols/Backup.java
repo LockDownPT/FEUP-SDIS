@@ -122,8 +122,8 @@ public class Backup {
      */
     public void deliverPutchunkMessage(Message message) {
 
-        if(peer.getVersion().equals("1.1")){
-            createTask(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+        if (peer.getVersion().equals("1.1")) {
+            createTask(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
         }
 
         Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
@@ -193,7 +193,7 @@ public class Backup {
 
             this.fileId = createHash(fileName + sdf.format(file.lastModified()));
 
-            if(peer.getVersion().equals("1.1"))
+            if (peer.getVersion().equals("1.1"))
                 createTask(fileId, Integer.toString(replicationDegree) + "-" + fileName);
 
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
@@ -236,13 +236,17 @@ public class Backup {
             e.printStackTrace();
         }
 
-        if(peer.getVersion().equals("1.1"))
+        if (peer.getVersion().equals("1.1"))
             finishTask(fileId);
 
     }
 
     public String getFileName() {
         return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public int getReplicationDegree() {
@@ -269,34 +273,29 @@ public class Backup {
         return numberOfChunks;
     }
 
-    public void createTask(String chunkId){
+    public void createTask(String chunkId) {
         tasks.addTask(chunkId);
     }
 
-    public void createTask(String fileId, String repDeg){
+    public void createTask(String fileId, String repDeg) {
         System.out.println(fileId);
         System.out.println(repDeg);
-        tasks.addTask(fileId,repDeg);
+        tasks.addTask(fileId, repDeg);
     }
 
-
-    public void finishTask(String chunkId){
+    public void finishTask(String chunkId) {
         tasks.finishTask(chunkId);
     }
 
-    public void finishPendingTasks(){
+    public void finishPendingTasks() {
 
-            tasks = new Tasks(peer);
+        tasks = new Tasks(peer);
 
-            //loads pending tasks from disk
-            tasks.loadTasks();
+        //loads pending tasks from disk
+        tasks.loadTasks();
 
-            //finishes pending tasks
-            tasks.finishPendingTasks();
-    }
-
-    public void setFileName(String fileName){
-        this.fileName=fileName;
+        //finishes pending tasks
+        tasks.finishPendingTasks();
     }
 }
 

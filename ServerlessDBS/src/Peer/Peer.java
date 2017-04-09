@@ -97,7 +97,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         backup = new Backup(this);
 
         //Sends pending PUTCHUNKS
-        if(this.version.equals("1.1")){
+        if (this.version.equals("1.1")) {
             backup.finishPendingTasks();
         }
 
@@ -254,8 +254,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
 
-        if(version.equals("1.1")){
-            //backup.finishTask(fileId+chunkNo);
+        if (version.equals("1.1")) {
+            backup.finishTask(fileId+chunkNo);
         }
 
         saveMetadataToDisk();

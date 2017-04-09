@@ -11,9 +11,10 @@ public class MC extends Channel {
 
     /**
      * Multicast control channel
+     *
      * @param address multicast address
-     * @param port multicast port
-     * @param peer  peer that listens on the multicast
+     * @param port    multicast port
+     * @param peer    peer that listens on the multicast
      * @throws IOException
      */
     public MC(String address, int port, Peer peer) throws IOException {

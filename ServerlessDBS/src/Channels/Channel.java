@@ -15,9 +15,10 @@ public class Channel {
 
     /**
      * Class that connects and listens to a multicast
+     *
      * @param address multicast address
-     * @param port multicast port
-     * @param peer  peer that listens on the multicast
+     * @param port    multicast port
+     * @param peer    peer that listens on the multicast
      * @throws IOException
      */
     Channel(String address, int port, Peer peer) throws IOException {
@@ -35,6 +36,7 @@ public class Channel {
 
     /**
      * Listens for incoming packets
+     *
      * @param protocol protocol calling the listener
      * @return packet
      * @throws IOException
@@ -64,6 +66,7 @@ public class Channel {
 
     /**
      * Sets channel thread
+     *
      * @param thread
      */
     void setThread(Thread thread) {

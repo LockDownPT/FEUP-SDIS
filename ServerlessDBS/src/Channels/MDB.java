@@ -10,9 +10,10 @@ public class MDB extends Channel {
 
     /**
      * Multicast Data Backup channel
+     *
      * @param address multicast address
-     * @param port multicast port
-     * @param peer  peer that listens on the multicast
+     * @param port    multicast port
+     * @param peer    peer that listens on the multicast
      * @throws IOException
      */
     public MDB(String address, int port, Peer peer) throws IOException {

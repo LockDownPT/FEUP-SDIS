@@ -14,12 +14,13 @@ public class Header {
     /**
      * Message header for PUTCHUNKS messages
      * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF>
-     * @param MessageType       indicates message type
-     * @param Version           indicates the version of the peer that sends the message
-     * @param SenderId          indicates the sender id
-     * @param FileId            indicates the file id
-     * @param ChunkNo           indicate the chunk number
-     * @param ReplicationDeg    indicates the desired replication degree
+     *
+     * @param MessageType    indicates message type
+     * @param Version        indicates the version of the peer that sends the message
+     * @param SenderId       indicates the sender id
+     * @param FileId         indicates the file id
+     * @param ChunkNo        indicate the chunk number
+     * @param ReplicationDeg indicates the desired replication degree
      */
     public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo, String ReplicationDeg) {
 
@@ -35,11 +36,12 @@ public class Header {
     /**
      * Message header for CHUNK, GETCHUNK and STORED messages
      * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <CRLF>
-     * @param MessageType       indicates message type
-     * @param Version           indicates the version of the peer that sends the message
-     * @param SenderId          indicates the sender id
-     * @param FileId            indicates the file id
-     * @param ChunkNo           indicate the chunk number
+     *
+     * @param MessageType indicates message type
+     * @param Version     indicates the version of the peer that sends the message
+     * @param SenderId    indicates the sender id
+     * @param FileId      indicates the file id
+     * @param ChunkNo     indicate the chunk number
      */
     public Header(String MessageType, String Version, String SenderId, String FileId, String ChunkNo) {
 
@@ -54,10 +56,11 @@ public class Header {
     /**
      * Message header for Delete messages
      * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <CRLF>
-     * @param MessageType       indicates message type
-     * @param Version           indicates the version of the peer that sends the message
-     * @param SenderId          indicates the sender id
-     * @param FileId            indicates the file id
+     *
+     * @param MessageType indicates message type
+     * @param Version     indicates the version of the peer that sends the message
+     * @param SenderId    indicates the sender id
+     * @param FileId      indicates the file id
      */
     public Header(String MessageType, String Version, String SenderId, String FileId) {
 
@@ -78,7 +81,7 @@ public class Header {
 
     public String getHeaderString() {
 
-        switch (messageType){
+        switch (messageType) {
             case PUTCHUNK:
                 return messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
             case DELETE:
