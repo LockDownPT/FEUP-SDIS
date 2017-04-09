@@ -140,5 +140,17 @@ public class Delete {
         mailman.startMailmanThread();
 
     }
+
+    public void resendDeleteMessage() {
+
+        for (Map.Entry<String, Message> entry : peer.getStackDeleteMessage().entrySet()) {
+            String key = entry.getKey();
+            Message message = entry.getValue();
+
+            deliverDeleteMessage(message);
+
+        }
+
+    }
 }
 

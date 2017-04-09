@@ -156,7 +156,12 @@ public class Mailman {
                     peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
                     break;
                 case STORED:
+                    if (peer.getVersion().equals("1.0"))
                     peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    else {
+                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        peer.removeMessageFromStackDelete(message.getMessageHeader().getFileId());
+                    }
                     break;
                 case GETCHUNK:
                     peer.getRestoreProtocol().sendChunk(message);
@@ -172,13 +177,14 @@ public class Mailman {
                     peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
                     else{
                         System.out.println("ta quase1 ");
-                        peer.getDeleteProtocol().deleteChunksEnhanced(message);}
+                        peer.getDeleteProtocol().deleteChunksEnhanced(message);
+                        peer.addMessageToStackDelete(message);}
                     break;
                 case DELETED:
                     System.out.println("DELETED A FUNCIONART");
                     break;
                 case ALIVE:
-                    System.out.println("ONE PEER IS ALIVE");
+                    peer.getDeleteProtocol().resendDeleteMessage();
                     break;
                 default:
                     break;

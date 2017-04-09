@@ -531,5 +531,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return deleteProtocol;
     }
 
-
+    public Map<String, Message> getStackDeleteMessage() {
+        return stackDeleteMessage;
+    }
 }
