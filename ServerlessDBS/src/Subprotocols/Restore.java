@@ -75,12 +75,13 @@ public class Restore {
         System.out.println("Constructing File");
         constructFile();
         System.out.println("Finished Restore");
-        try {
-            listener.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(peer.getVersion().equals("1.1")){
+            try {
+                listener.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-
     }
 
     private void getFileInfo() {

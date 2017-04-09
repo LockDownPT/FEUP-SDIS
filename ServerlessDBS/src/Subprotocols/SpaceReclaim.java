@@ -34,12 +34,16 @@ public class SpaceReclaim {
         int usedSpace = peer.getUsedSpace();
         int freeSpace = storageSpace - usedSpace;
 
+        if(this.spaceToBeReduced > peer.getStorageSpace()){
+            this.spaceToBeReduced=peer.getStorageSpace();
+        }
+
         if ((freeSpace - this.spaceToBeReduced) > 0) {
             peer.setStorageSpace(storageSpace - spaceToBeReduced);
             return false;
         } else {
-            peer.setStorageSpace(storageSpace - spaceToBeReduced);
             spaceToBeReduced -= freeSpace;
+            peer.setStorageSpace(peer.getStorageSpace()-freeSpace);
         }
 
         return true;
@@ -54,7 +58,7 @@ public class SpaceReclaim {
                     System.out.println("Removing chunks with lower replication degree");
                 }
             System.out.println("Deleted chunks with lower replication degree");
-            if (spaceToBeReduced != 0)
+            if (spaceToBeReduced >= 0)
                 removeChunksWithOneRepDeg();
             System.out.println("Finished Reclaim Space");
         }
@@ -72,7 +76,7 @@ public class SpaceReclaim {
                 removeChunk(key);
                 tempRepDeg--;
             }
-            if (spaceToBeReduced == 0)
+            if (spaceToBeReduced <= 0 || spaceToBeReduced > peer.getStorageSpace())
                 return true;
         }
         return false;
@@ -86,7 +90,7 @@ public class SpaceReclaim {
             if (tempRepDeg > 1) {
                 removeChunk(key);
             }
-            if (spaceToBeReduced == 0)
+            if (spaceToBeReduced <= 0 || spaceToBeReduced > peer.getStorageSpace())
                 return true;
         }
         return false;
@@ -96,7 +100,7 @@ public class SpaceReclaim {
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
             removeChunk(key);
-            if (spaceToBeReduced == 0)
+            if (spaceToBeReduced <= 0 || spaceToBeReduced > peer.getStorageSpace())
                 return;
         }
     }
@@ -120,7 +124,9 @@ public class SpaceReclaim {
         peer.decreaseReplicationDegree(peer.getFileIdFromChunkId(chunkId), peer.getChunkNoFromChunkId(chunkId));
         peer.removeChunkFromStoredChunks(chunkId);
         peer.setUsedSpace(peer.getUsedSpace() - chunkSize);
+        peer.setStorageSpace(peer.getStorageSpace() - chunkSize);
         this.spaceToBeReduced -= chunkSize;
+        peer.saveMetadataToDisk();
 
     }
 
