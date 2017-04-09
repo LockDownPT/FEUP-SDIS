@@ -103,11 +103,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         //Sends pending PUTCHUNKS
         if (this.version.equals("1.1")) {
             backup.finishPendingTasks();
+            deleteProtocol.sendAliveMessage();
         }
 
         saveMetadataToDisk();
-
-        deleteProtocol.sendAliveMessage();
     }
 
     /***
