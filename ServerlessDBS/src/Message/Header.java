@@ -1,7 +1,6 @@
 package Message;
 
-import static Utilities.Constants.CRLF;
-import static Utilities.Constants.SPACE;
+import static Utilities.Constants.*;
 
 public class Header {
 
@@ -79,7 +78,15 @@ public class Header {
 
     public String getHeaderString() {
 
-        return messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
+        switch (messageType){
+            case PUTCHUNK:
+                return messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + replicationDeg + SPACE + CRLF + CRLF;
+            case DELETE:
+                return messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + CRLF + CRLF;
+            default:
+                return messageType + SPACE + version + SPACE + senderId + SPACE + fileId + SPACE + chunkNo + SPACE + CRLF + CRLF;
+
+        }
     }
 
     public String getMessageType() {
