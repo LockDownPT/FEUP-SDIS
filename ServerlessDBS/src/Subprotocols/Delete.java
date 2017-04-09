@@ -114,17 +114,10 @@ public class Delete {
             peer.getDeleteProtocol().updateRepDeg(fileId);
 
 
-        Message request = new Message(DELETED, peer.getVersion(), peer.getPeerId(), this.fileId);
-        Mailman messageHandler = new Mailman(request, peer);
-        messageHandler.startMailmanThread();
+
 
     }
 
-    public void deliverDeletedMessageEnhanced(Message message) {
 
-        Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETED, peer);
-        mailman.startMailmanThread();
-
-    }
 }
 
