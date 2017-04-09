@@ -7,6 +7,8 @@ import Subprotocols.Backup;
 import Subprotocols.Delete;
 import Subprotocols.Restore;
 import Subprotocols.SpaceReclaim;
+import Utilities.Tasks;
+import javafx.concurrent.Task;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -96,7 +98,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         spaceReclaimProtocol = new SpaceReclaim(this);
         backup = new Backup(this);
 
-        loadMetadataFromDisk();
     }
 
     /***
@@ -245,6 +246,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
+
+        //tasks.finishTask(fileId+chunkId);
         saveMetadataToDisk();
     }
 
@@ -335,7 +338,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    private void loadDataFromFile(File file, String filePath, Map data) {
+    public void loadDataFromFile(File file, String filePath, Map data) {
         if (file.exists() && !file.isDirectory()) {
             Properties properties = new Properties();
             try {
@@ -480,14 +483,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     }
 
     public String getFileIdFromChunkId(String chunkId) {
-
-        System.out.print("FILE ID: " + chunkId.substring(0, 64));
         return chunkId.substring(0, 64);
     }
 
     public String getChunkNoFromChunkId(String chunkId) {
-
-        System.out.println("CHUNK NO: " + chunkId.substring(64, chunkId.length()));
         return chunkId.substring(64, chunkId.length());
     }
 
@@ -558,5 +557,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public Map<String, String> getChunksReplicationDegree() {
         return chunksReplicationDegree;
     }
+
 }
 

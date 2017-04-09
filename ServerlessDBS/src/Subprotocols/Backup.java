@@ -4,6 +4,7 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
+import Utilities.Tasks;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -19,6 +20,7 @@ public class Backup {
     private String fileId;
     private Peer peer;
     private int numberOfChunks = 1;
+    private Tasks tasks;
 
     public Backup(String file, int replicationDegree, Peer peer) {
         this.fileName = file;
@@ -30,6 +32,18 @@ public class Backup {
     public Backup(Peer peer) {
         this.fileId = null;
         this.peer = peer;
+
+        //Space reclaim enhancement
+        if(peer.getVersion().equals("1.1")){
+
+            tasks = new Tasks(peer);
+
+            //loads pending tasks from disk
+            tasks.loadTasks();
+
+            //finishes pending tasks
+            tasks.finishPendingTasks();
+        }
     }
 
     public void sendChunk(byte[] chunk, int chunkNo) {
@@ -112,6 +126,8 @@ public class Backup {
      * has been accomplished. Otherwise it resends the PUTCHUNK request, a maximum of 5 times.
      */
     public void deliverPutchunkMessage(Message message) {
+
+        createTask(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
 
         Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
         mailman.startMailmanThread();
@@ -247,6 +263,11 @@ public class Backup {
     public int getNumberOfChunks() {
         return numberOfChunks;
     }
+
+    public void createTask(String chunkId){
+        tasks.addTask(chunkId);
+    }
+
 
 }
 
