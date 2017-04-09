@@ -147,7 +147,7 @@ public class Message {
         }
 
         if ((byte) message.read() != LF || (byte) message.read() != CR || (byte) message.read() != LF) {
-            throw new IOException("Wrong Header Format.");
+            System.out.println("Wrong Header Format.");
         }
 
         String[] requestHeader = header.toString().split(" ");
@@ -155,7 +155,7 @@ public class Message {
         messageHeader.setMessageType(requestHeader[0]);
         byte[] bodyContent;
         switch (messageHeader.getMessageType()) {
-            case "PUTCHUNK":
+            case PUTCHUNK:
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
@@ -165,17 +165,17 @@ public class Message {
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;
-            case "GETCHUNK":
+            case GETCHUNK:
                 setPacketIP(packet.getAddress());
                 setPacketPort(packet.getPort());
-            case "STORED":
-            case "REMOVED":
+            case STORED:
+            case REMOVED:
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
                 break;
-            case "CHUNK":
+            case CHUNK:
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
@@ -184,17 +184,18 @@ public class Message {
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;
-            case "DELETE":
-            case "DELETED":
+            case DELETE:
+            case DELETED:
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
                 break;
-            case "ALIVE":
+            case ALIVE:
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 break;
             default:
+                System.out.println("Unrecognized message type");
                 break;
         }
 

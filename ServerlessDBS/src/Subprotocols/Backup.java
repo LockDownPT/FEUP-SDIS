@@ -39,14 +39,14 @@ public class Backup {
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
 
-        deliverPutchunkMessage(request);
+        //deliverPutchunkMessage(request);
 
         //For a threaded backup comment previous statement and uncomment next 2 sentences
 
-        /*
+
         Mailman m = new Mailman(request, peer);
         m.startMailmanThread();
-        */
+
 
     }
 
@@ -55,7 +55,7 @@ public class Backup {
      * it will store the chunk and send a STORED message for the sender
      */
     public void storeChunk(Message message) {
-        if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+        //if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
             long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
             if (availableSpace > message.getBody().length) {
                 Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
@@ -83,7 +83,7 @@ public class Backup {
                 } finally {
                     try {
                         peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        peer.increaseReplicationDegree(message);
                         assert output != null;
                         output.close();
                     } catch (IOException e) {
@@ -91,7 +91,7 @@ public class Backup {
                     }
                 }
             }
-        }
+        //}
     }
 
     /**

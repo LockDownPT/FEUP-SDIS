@@ -152,10 +152,11 @@ public class Mailman {
                     }
                     break;
                 case STORED:
-                    if (peer.getVersion().equals("1.0"))
-                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    if (peer.getVersion().equals("1.0")){
+                        peer.increaseReplicationDegree(message);
+                    }
                     else {
-                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                        peer.increaseReplicationDegree(message);
                         peer.removeMessageFromStackDelete(message.getMessageHeader().getFileId());
                     }
                     break;

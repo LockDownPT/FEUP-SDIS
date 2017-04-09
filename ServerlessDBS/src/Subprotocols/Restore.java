@@ -64,8 +64,9 @@ public class Restore {
         requestChunks();
         do {
             try {
-                sleep(500);
-                System.out.print(".");
+                sleep(3000);
+                if(restoredChunks<numberOfChunks)
+                    requestChunks();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
