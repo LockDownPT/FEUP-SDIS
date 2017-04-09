@@ -294,7 +294,7 @@ public class Restore {
                     saveChunk(requestMessage);
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    restore.finishedRestore=true;
                 }
             }
             try {

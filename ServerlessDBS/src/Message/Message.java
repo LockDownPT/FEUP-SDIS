@@ -57,6 +57,11 @@ public class Message {
         messageHeader = new Header(messageType, version, senderId, fileId);
     }
 
+    //ALIVE
+    public Message(String messageType, String version, String senderId) {
+        messageHeader = new Header(messageType, version, senderId);
+    }
+
 
     /**
      * Constructs a message from a datagram packet
@@ -180,9 +185,14 @@ public class Message {
                 setBody(bodyContent);
                 break;
             case "DELETE":
+            case "DELETED":
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
+                break;
+            case "ALIVE":
+                messageHeader.setVersion(requestHeader[1]);
+                messageHeader.setSenderId(requestHeader[2]);
                 break;
             default:
                 break;

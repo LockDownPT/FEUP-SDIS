@@ -3,6 +3,7 @@ package Peer;
 import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
+import Message.Message;
 import Subprotocols.Backup;
 import Subprotocols.Delete;
 import Subprotocols.Restore;
@@ -18,6 +19,8 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+
 
 
 public class Peer extends UnicastRemoteObject implements PeerInterface {
@@ -56,6 +59,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     private Map<String, Boolean> sentChunks = new ConcurrentHashMap<>();
 
+    private Map<String, Message> stackDeleteMessage = new ConcurrentHashMap<>();
 
     public Peer(String version, String peerId, String peerAccessPoint, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
         super();
@@ -99,6 +103,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         //Sends pending PUTCHUNKS
         if (this.version.equals("1.1")) {
             backup.finishPendingTasks();
+            deleteProtocol.sendAliveMessage();
         }
 
         saveMetadataToDisk();
@@ -468,7 +473,18 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     }
 
 
-    public void removeChunkFromStoredChunks(String chunkID) {
+    public void addMessageToStackDelete(Message message){
+        String fileId = message.getMessageHeader().getFileId();
+        this.stackDeleteMessage.put(fileId,message);
+
+    }
+
+    public void removeMessageFromStackDelete(String fileId){
+        this.stackDeleteMessage.remove(fileId);
+
+    }
+
+    public void removeChunkFromStoredChunks(String chunkID){
         this.storedChunks.remove(chunkID);
     }
 
@@ -568,5 +584,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return chunksReplicationDegree;
     }
 
+    public Map<String, Message> getStackDeleteMessage() {
+        return stackDeleteMessage;
+    }
 }
 

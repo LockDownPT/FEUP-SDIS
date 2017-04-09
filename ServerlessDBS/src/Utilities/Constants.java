@@ -11,8 +11,12 @@ public class Constants {
     public static final String PUTCHUNK = "PUTCHUNK";
     public static final String STORED = "STORED";
     public static final String DELETE = "DELETE";
+    public static final String DELETED = "DELETED";
     public static final String GETCHUNK = "GETCHUNK";
     public static final String CHUNK = "CHUNK";
     public static final String REMOVED = "REMOVED";
+    public static final String ALIVE = "ALIVE";
+
+
 
 }

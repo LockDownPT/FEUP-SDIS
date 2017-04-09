@@ -71,6 +71,14 @@ public class Header {
 
     }
 
+    public Header(String MessageType, String Version, String SenderId) {
+
+        this.messageType = MessageType.trim();
+        this.version = Version.trim();
+        this.senderId = SenderId.trim();
+
+    }
+
     /**
      * Empty header constructor
      */
