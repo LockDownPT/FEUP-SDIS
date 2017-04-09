@@ -131,6 +131,9 @@ public class Mailman {
                     System.out.println("ta quase quase");
                     peer.getDeleteProtocol().deliverDeletedMessageEnhanced(message);
                     break;
+                case ALIVE:
+                    peer.getDeleteProtocol().deliverAliveMessage(message);
+                    break;
                 default:
                     break;
             }
@@ -172,7 +175,10 @@ public class Mailman {
                         peer.getDeleteProtocol().deleteChunksEnhanced(message);}
                     break;
                 case DELETED:
-                    System.out.println("ja ta asdasdsadasd");
+                    System.out.println("DELETED A FUNCIONART");
+                    break;
+                case ALIVE:
+                    System.out.println("ONE PEER IS ALIVE");
                     break;
                 default:
                     break;

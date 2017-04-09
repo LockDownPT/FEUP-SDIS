@@ -25,6 +25,11 @@ public class Message {
         messageHeader = new Header(messageType, version, senderId, fileId);
     }
 
+    //ALIVE
+    public Message(String messageType, String version, String senderId) {
+        messageHeader = new Header(messageType, version, senderId);
+    }
+
     public Message(DatagramPacket packet) {
 
         messageHeader = new Header();
@@ -87,6 +92,10 @@ public class Message {
                 messageHeader.setVersion(requestHeader[1]);
                 messageHeader.setSenderId(requestHeader[2]);
                 messageHeader.setFileId(requestHeader[3]);
+                break;
+            case "ALIVE":
+                messageHeader.setVersion(requestHeader[1]);
+                messageHeader.setSenderId(requestHeader[2]);
                 break;
             default:
                 break;

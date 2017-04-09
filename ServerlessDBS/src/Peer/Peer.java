@@ -3,6 +3,7 @@ package Peer;
 import Channels.MC;
 import Channels.MDB;
 import Channels.MDR;
+import Message.Message;
 import Subprotocols.Backup;
 import Subprotocols.Delete;
 import Subprotocols.Restore;
@@ -22,6 +23,8 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+
 
 
 public class Peer extends UnicastRemoteObject implements PeerInterface {
@@ -64,6 +67,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     private Map<String, Boolean> sentChunks = new ConcurrentHashMap<>();
 
+    private Map<String, Message> stackDeleteMessage = new ConcurrentHashMap<>();
+
 
     public Peer(String version, String peerId, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
         super();
@@ -102,6 +107,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         restoreProtocol = new Restore(this);
         deleteProtocol = new Delete(this);
         spaceReclaimProtocol = new SpaceReclaim(this);
+
+        deleteProtocol.sendAliveMessage();
     }
 
     /***
@@ -400,6 +407,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+
+
     public Map<String, String> getStoredChunks() {
         return storedChunks;
     }
@@ -413,6 +422,17 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         parFileIdChunkNo[0] = fileId;
         parFileIdChunkNo[1] = chunkNo;
         this.mapChunkIdToFileAndChunkNo.put(fileId + chunkNo, parFileIdChunkNo);
+    }
+
+    public void addMessageToStackDelete(Message message){
+        String fileId = message.getMessageHeader().getFileId();
+        this.stackDeleteMessage.put(fileId,message);
+
+    }
+
+    public void removeMessageFromStackDelete(String fileId){
+        this.stackDeleteMessage.remove(fileId);
+
     }
 
     public Map<String, String[]> getMapChunkIdToFileAndChunkNo() {
@@ -510,5 +530,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public Delete getDeleteProtocol() {
         return deleteProtocol;
     }
+
 
 }
