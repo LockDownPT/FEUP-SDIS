@@ -240,5 +240,13 @@ public class Backup {
         return numberOfChunks;
     }
 
+    public void setReplicationDegree(int repDeg){
+        this.replicationDegree=repDeg;
+    }
+
+    public void setFileId(String id){
+        this.fileId=id;
+    }
+
 }
 

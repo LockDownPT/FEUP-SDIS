@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static Utilities.Constants.PUTCHUNK;
 import static Utilities.Constants.REMOVED;
@@ -17,8 +19,7 @@ public class SpaceReclaim {
 
     private Peer peer;
     private int spaceToBeReduced = 0;
-    private int receivedPUTCHUNK = 0;
-    private String chunkId = null;
+    private Map<String, Boolean> receivedPutchunks = new ConcurrentHashMap<>();
 
     public SpaceReclaim(Peer peer, int spaceToBeReduced) {
         this.peer = peer;
@@ -75,7 +76,8 @@ public class SpaceReclaim {
             while (tempRepDeg > Integer.parseInt(value)) {
                 removeChunk(key);
                 tempRepDeg--;
-            }
+            }        System.out.println("SPACE TO BE RECLAIMED" + this.spaceToBeReduced);
+
             if (spaceToBeReduced <= 0 || spaceToBeReduced > peer.getStorageSpace())
                 return true;
         }
@@ -153,30 +155,37 @@ public class SpaceReclaim {
 
         if (peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
             if (currentRepDeg < desiredRepDeg) {
-                try {
-                    receivedPUTCHUNK = 0;
-                    chunkId = message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo();
-                    Thread.sleep((long) (Math.random() * 400));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (receivedPUTCHUNK == 0) {
-                        Message messagePUTCHUNK = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), String.valueOf(desiredRepDeg));
-                        peer.getBackup().deliverPutchunkMessage(messagePUTCHUNK);
-                    }
-                    receivedPUTCHUNK = 0;
-                }
+                startBackupProtocol(message, desiredRepDeg);
             }
         }
 
     }
 
-    public void increaseReceivedPUTCHUNK(Message message) {
-        if (chunkId != null) {
-            if (chunkId.equals(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo())) {
-                receivedPUTCHUNK = 1;
+    public void startBackupProtocol(Message message, int desiredRepDeg){
+        try {
+            receivedPutchunks.put(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo(),false);
+            Thread.sleep((long) (Math.random() * 400));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            if (!receivedPutchunks.get(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo())) {
+                peer.getBackup().setReplicationDegree(desiredRepDeg);
+                peer.getBackup().setFileId(message.getMessageHeader().getFileId());
+                Path path = Paths.get(peer.getPeerId()+ "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                byte[] data = new byte[0];
+                try {
+                    data = Files.readAllBytes(path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                peer.getBackup().sendChunk(data, Integer.parseInt(message.getMessageHeader().getChunkNo()));
             }
         }
+    }
+
+    public void increaseReceivedPUTCHUNK(Message message) {
+
+        receivedPutchunks.put(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo(), true);
 
     }
 }
