@@ -96,6 +96,11 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         spaceReclaimProtocol = new SpaceReclaim(this);
         backup = new Backup(this);
 
+        //Sends pending PUTCHUNKS
+        if(this.version.equals("1.1")){
+            backup.finishPendingTasks();
+        }
+
     }
 
     /***
@@ -107,6 +112,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
 
         this.backup = new Backup(file, replicationDegree, this);
+
+        //Finishes sendind pending PUTCHUNKS (if any)
+        backup.finishPendingTasks();
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
         backup.readChunks();

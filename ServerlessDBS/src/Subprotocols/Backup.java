@@ -27,35 +27,11 @@ public class Backup {
         this.replicationDegree = replicationDegree;
         this.fileId = null;
         this.peer = peer;
-
-        //Space reclaim enhancement
-        if(peer.getVersion().equals("1.1")){
-
-            tasks = new Tasks(peer);
-
-            //loads pending tasks from disk
-            tasks.loadTasks();
-
-            //finishes pending tasks
-            tasks.finishPendingTasks();
-        }
     }
 
     public Backup(Peer peer) {
         this.fileId = null;
         this.peer = peer;
-
-        //Space reclaim enhancement
-        if(peer.getVersion().equals("1.1")){
-
-            tasks = new Tasks(peer);
-
-            //loads pending tasks from disk
-            tasks.loadTasks();
-
-            //finishes pending tasks
-            tasks.finishPendingTasks();
-        }
     }
 
     public void sendChunk(byte[] chunk, int chunkNo) {
@@ -139,7 +115,9 @@ public class Backup {
      */
     public void deliverPutchunkMessage(Message message) {
 
-        createTask(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+        if(peer.getVersion().equals("1.1")){
+            createTask(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+        }
 
         Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
         mailman.startMailmanThread();
@@ -211,7 +189,10 @@ public class Backup {
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             this.fileId = createHash(fileName + sdf.format(file.lastModified()));
-            createTask(fileId, Integer.toString(replicationDegree));
+
+            if(peer.getVersion().equals("1.1"))
+                createTask(fileId, Integer.toString(replicationDegree) + "-" + fileName);
+
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
             int numSplits = (int) Math.floor(fileLength / maxSizeChunk);
@@ -286,6 +267,8 @@ public class Backup {
     }
 
     public void createTask(String fileId, String repDeg){
+        System.out.println(fileId);
+        System.out.println(repDeg);
         tasks.addTask(fileId,repDeg);
     }
 
@@ -294,5 +277,19 @@ public class Backup {
         tasks.finishTask(chunkId);
     }
 
+    public void finishPendingTasks(){
+
+            tasks = new Tasks(peer);
+
+            //loads pending tasks from disk
+            tasks.loadTasks();
+
+            //finishes pending tasks
+            tasks.finishPendingTasks();
+    }
+
+    public void setFileName(String fileName){
+        this.fileName=fileName;
+    }
 }
 

@@ -108,8 +108,15 @@ public class Tasks {
                         e.printStackTrace();
                     }
 
+                    String[] value = pendingTasks.getProperty(chunkId).split("-");
+
+                    System.out.println("CHUNK ID: " + chunkId);
+                    System.out.println("VALUE: " + pendingTasks.getProperty(chunkId));
+                    System.out.println("REPdeg: " + value[0]);
+
                     peer.getBackup().setFileId(chunkId);
-                    peer.getBackup().setReplicationDegree(Integer.parseInt(pendingTasks.getProperty(chunkId)));
+                    peer.getBackup().setReplicationDegree(Integer.parseInt(value[0]));
+                    peer.getBackup().setFileName(value[1]);
                     peer.getBackup().readChunks();
                 }
             }
