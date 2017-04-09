@@ -36,16 +36,18 @@ public class Restore {
     private OutputStream out = null;
     private DataOutputStream dos = null;
     private boolean tcpConnected = false;
+    private boolean finishedRestore;
 
     public Restore(String file, Peer peer) {
 
         fileName = file;
         this.peer = peer;
-
+        this.finishedRestore=false;
     }
 
     public Restore(Peer peer) {
         this.peer = peer;
+        this.finishedRestore=false;
     }
 
     public void start() {
@@ -54,7 +56,7 @@ public class Restore {
         getFileInfo();
 
         if (peer.getVersion().equals("1.1")) {
-            Runnable enhancedRestore = new RestoreEnhanced();
+            Runnable enhancedRestore = new RestoreEnhanced(this);
             peer.getDeliverExecutor().submit(enhancedRestore);
         }
 
@@ -73,6 +75,11 @@ public class Restore {
         System.out.println("Constructing File");
         constructFile();
         System.out.println("Finished Restore");
+        try {
+            listener.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -207,7 +214,7 @@ public class Restore {
                 dos.write(newMessage.getMessageBytes(CHUNK));
                 System.out.println("SENT CHUNK " + request.getMessageHeader().getChunkNo());
             } catch (IOException e) {
-                e.printStackTrace();
+                connectToServerSocket(request.getPacketIP(), peer.getMdr_port());
             }
         } else {
             Mailman mailman = new Mailman(newMessage, peer.getMdr_ip(), peer.getMdr_port(), CHUNK, peer);
@@ -231,18 +238,29 @@ public class Restore {
 
     public class RestoreEnhanced implements Runnable {
 
+        private Restore restore;
+
+        public RestoreEnhanced(Restore restore) {
+            this.restore=restore;
+        }
+
         public void run() {
             System.out.println("Connecting to socket");
             try {
                 listener = new ServerSocket(peer.getMdr_port());
                 System.out.println("Connected to socket");
                 while (true) {
-                    Runnable requestHandler = new RequestHandler(listener.accept());
+                    Runnable requestHandler = new RequestHandler(listener.accept(), restore);
                     peer.getDeliverExecutor().submit(requestHandler);
                     System.out.println("RECEIVED CHUNK");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                try {
+                    listener.close();
+                    tcpConnected=false;
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
 
         }
@@ -251,14 +269,16 @@ public class Restore {
     public class RequestHandler implements Runnable {
 
         private Socket socket;
+        private Restore restore;
 
-        public RequestHandler(Socket socket) {
+        public RequestHandler(Socket socket, Restore restore) {
             this.socket = socket;
+            this.restore=restore;
         }
 
         public void run() {
             System.out.println("REQUEST HANDLER STARTED");
-            while (true) {
+            while (!restore.finishedRestore) {
                 try {
                     InputStream in = socket.getInputStream();
                     DataInputStream dis = new DataInputStream(in);
@@ -275,6 +295,12 @@ public class Restore {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+            try {
+                socket.close();
+                System.out.println("CLOSED SOCKET");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
