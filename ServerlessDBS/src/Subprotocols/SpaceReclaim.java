@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static Utilities.Constants.PUTCHUNK;
 import static Utilities.Constants.REMOVED;
 
 public class SpaceReclaim {
@@ -35,8 +34,8 @@ public class SpaceReclaim {
         int usedSpace = peer.getUsedSpace();
         int freeSpace = storageSpace - usedSpace;
 
-        if(this.spaceToBeReduced > peer.getStorageSpace()){
-            this.spaceToBeReduced=peer.getStorageSpace();
+        if (this.spaceToBeReduced > peer.getStorageSpace()) {
+            this.spaceToBeReduced = peer.getStorageSpace();
         }
 
         if ((freeSpace - this.spaceToBeReduced) > 0) {
@@ -44,7 +43,7 @@ public class SpaceReclaim {
             return false;
         } else {
             spaceToBeReduced -= freeSpace;
-            peer.setStorageSpace(peer.getStorageSpace()-freeSpace);
+            peer.setStorageSpace(peer.getStorageSpace() - freeSpace);
         }
 
         return true;
@@ -76,7 +75,8 @@ public class SpaceReclaim {
             while (tempRepDeg > Integer.parseInt(value)) {
                 removeChunk(key);
                 tempRepDeg--;
-            }        System.out.println("SPACE TO BE RECLAIMED" + this.spaceToBeReduced);
+            }
+            System.out.println("SPACE TO BE RECLAIMED" + this.spaceToBeReduced);
 
             if (spaceToBeReduced <= 0 || spaceToBeReduced > peer.getStorageSpace())
                 return true;
@@ -161,9 +161,9 @@ public class SpaceReclaim {
 
     }
 
-    public void startBackupProtocol(Message message, int desiredRepDeg){
+    public void startBackupProtocol(Message message, int desiredRepDeg) {
         try {
-            receivedPutchunks.put(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo(),false);
+            receivedPutchunks.put(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo(), false);
             Thread.sleep((long) (Math.random() * 400));
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -171,7 +171,7 @@ public class SpaceReclaim {
             if (!receivedPutchunks.get(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo())) {
                 peer.getBackup().setReplicationDegree(desiredRepDeg);
                 peer.getBackup().setFileId(message.getMessageHeader().getFileId());
-                Path path = Paths.get(peer.getPeerId()+ "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                Path path = Paths.get(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
                 byte[] data = new byte[0];
                 try {
                     data = Files.readAllBytes(path);

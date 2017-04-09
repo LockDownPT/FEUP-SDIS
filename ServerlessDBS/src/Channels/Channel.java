@@ -13,6 +13,13 @@ public class Channel {
     private Thread thread;
     private Peer peer;
 
+    /**
+     * Class that connects and listens to a multicast
+     * @param address multicast address
+     * @param port multicast port
+     * @param peer  peer that listens on the multicast
+     * @throws IOException
+     */
     Channel(String address, int port, Peer peer) throws IOException {
         InetAddress channel_addr = InetAddress.getByName(address);
 
@@ -26,6 +33,12 @@ public class Channel {
 
     }
 
+    /**
+     * Listens for incoming packets
+     * @param protocol protocol calling the listener
+     * @return packet
+     * @throws IOException
+     */
     DatagramPacket receiveRequests(String protocol) throws IOException {
 
         byte[] buf;
@@ -41,15 +54,26 @@ public class Channel {
     }
 
 
+    /**
+     * Starts channel listener thread
+     */
     public void listen() {
         this.thread.start();
 
     }
 
+    /**
+     * Sets channel thread
+     * @param thread
+     */
     void setThread(Thread thread) {
         this.thread = thread;
     }
 
+
+    /**
+     * @return peer that connected to the channel
+     */
     Peer getPeer() {
         return peer;
     }

@@ -62,7 +62,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
         this.version = version;
         this.peerId = peerId;
-        this.peerAccessPoint=peerAccessPoint;
+        this.peerAccessPoint = peerAccessPoint;
         this.mc_ip = mc_ip;
         this.mc_port = mc_port;
         this.mdb_ip = mdb_ip;
@@ -89,7 +89,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         backupChannel.listen();
         restoreChannel.listen();
         controlChannel.listen();
-
 
 
         restoreProtocol = new Restore(this);
@@ -246,7 +245,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
-       saveMetadataToDisk();
+        saveMetadataToDisk();
     }
 
     /**
@@ -286,14 +285,14 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         Properties diskInfo = new Properties();
         OutputStream output = null;
 
-        try{
+        try {
             output = new FileOutputStream(peerId + "/diskInfo.properties");
             diskInfo.setProperty("Used Space", Integer.toString(usedSpace));
             diskInfo.setProperty("Disk Size", Integer.toString(diskSpace));
 
-            diskInfo.store(output,null);
+            diskInfo.store(output, null);
 
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (output != null) {
@@ -317,8 +316,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         File chunksRepDegProperties = new File(peerId + "/chunksRepDeg.properties");
         File storedChunksProperties = new File(peerId + "/storedChunks.properties");
 
-        loadDataFromFile(chunksRepDegProperties,peerId + "/chunksRepDeg.properties", chunksReplicationDegree);
-        loadDataFromFile(storedChunksProperties,peerId + "/storedChunks.properties", storedChunks);
+        loadDataFromFile(chunksRepDegProperties, peerId + "/chunksRepDeg.properties", chunksReplicationDegree);
+        loadDataFromFile(storedChunksProperties, peerId + "/storedChunks.properties", storedChunks);
 
         File diskInfo = new File(peerId + "/diskInfo.properties");
 
@@ -336,7 +335,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    private void loadDataFromFile(File file, String filePath, Map data){
+    private void loadDataFromFile(File file, String filePath, Map data) {
         if (file.exists() && !file.isDirectory()) {
             Properties properties = new Properties();
             try {
@@ -443,8 +442,8 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    public void removeChunkFromSentChunks(String fileId, String chunkNo){
-        sentChunks.remove(fileId+chunkNo);
+    public void removeChunkFromSentChunks(String fileId, String chunkNo) {
+        sentChunks.remove(fileId + chunkNo);
     }
 
     public Map<String, String> getStoredChunks() {

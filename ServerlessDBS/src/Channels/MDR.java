@@ -8,12 +8,23 @@ import java.net.DatagramPacket;
 
 
 public class MDR extends Channel {
-    public MDR(String address, int port, Peer creator) throws IOException {
-        super(address, port, creator);
+
+    /**
+     * Multicast Data Restore channel
+     * @param address multicast address
+     * @param port multicast port
+     * @param peer  peer that listens on the multicast
+     * @throws IOException
+     */
+    public MDR(String address, int port, Peer peer) throws IOException {
+        super(address, port, peer);
         setThread(new MDR.MDRThread());
 
     }
-
+    
+    /**
+     * Channel thread that concurrently listens for incoming packets
+     */
     public class MDRThread extends Thread {
         public void run() {
             try {

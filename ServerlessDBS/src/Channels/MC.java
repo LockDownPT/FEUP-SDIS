@@ -9,11 +9,21 @@ import java.net.DatagramPacket;
 
 public class MC extends Channel {
 
+    /**
+     * Multicast control channel
+     * @param address multicast address
+     * @param port multicast port
+     * @param peer  peer that listens on the multicast
+     * @throws IOException
+     */
     public MC(String address, int port, Peer peer) throws IOException {
         super(address, port, peer);
         setThread(new MC.MCThread());
     }
 
+    /**
+     * Channel thread that concurrently listens for incoming packets
+     */
     public class MCThread extends Thread {
         public void run() {
             try {

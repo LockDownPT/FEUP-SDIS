@@ -42,12 +42,12 @@ public class Restore {
 
         fileName = file;
         this.peer = peer;
-        this.finishedRestore=false;
+        this.finishedRestore = false;
     }
 
     public Restore(Peer peer) {
         this.peer = peer;
-        this.finishedRestore=false;
+        this.finishedRestore = false;
     }
 
     public void start() {
@@ -75,7 +75,7 @@ public class Restore {
         System.out.println("Constructing File");
         constructFile();
         System.out.println("Finished Restore");
-        if(peer.getVersion().equals("1.1")){
+        if (peer.getVersion().equals("1.1")) {
             try {
                 listener.close();
             } catch (IOException e) {
@@ -242,7 +242,7 @@ public class Restore {
         private Restore restore;
 
         public RestoreEnhanced(Restore restore) {
-            this.restore=restore;
+            this.restore = restore;
         }
 
         public void run() {
@@ -258,7 +258,7 @@ public class Restore {
             } catch (IOException e) {
                 try {
                     listener.close();
-                    tcpConnected=false;
+                    tcpConnected = false;
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -274,7 +274,7 @@ public class Restore {
 
         public RequestHandler(Socket socket, Restore restore) {
             this.socket = socket;
-            this.restore=restore;
+            this.restore = restore;
         }
 
         public void run() {

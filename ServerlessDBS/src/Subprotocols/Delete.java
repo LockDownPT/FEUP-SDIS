@@ -64,7 +64,7 @@ public class Delete {
         String path = "./" + peer.getPeerId() + "/" + fileId;
         File file = new File(path);
         deleteFolder(file);
-        if (peer.getDeleteProtocol() != null){
+        if (peer.getDeleteProtocol() != null) {
             peer.getDeleteProtocol().updateRepDeg(fileId);
         }
 
@@ -77,7 +77,7 @@ public class Delete {
                 if (f.isDirectory()) {
                     deleteFolder(f);
                 } else {
-                    peer.setUsedSpace(peer.getUsedSpace()-(int)f.length());
+                    peer.setUsedSpace(peer.getUsedSpace() - (int) f.length());
                     f.delete();
                 }
             }

@@ -50,9 +50,9 @@ public class Backup {
             long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
             if (availableSpace > message.getBody().length) {
                 Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                if(peer.getVersion().equals("1.1")){
+                if (peer.getVersion().equals("1.1")) {
                     deliverStoredMessageEnhanced(stored);
-                }else{
+                } else {
                     deliverStoredMessage(stored);
                 }
                 OutputStream output = null;
@@ -228,8 +228,16 @@ public class Backup {
         return replicationDegree;
     }
 
+    public void setReplicationDegree(int repDeg) {
+        this.replicationDegree = repDeg;
+    }
+
     public String getFileId() {
         return fileId;
+    }
+
+    public void setFileId(String id) {
+        this.fileId = id;
     }
 
     public Peer getPeer() {
@@ -238,14 +246,6 @@ public class Backup {
 
     public int getNumberOfChunks() {
         return numberOfChunks;
-    }
-
-    public void setReplicationDegree(int repDeg){
-        this.replicationDegree=repDeg;
-    }
-
-    public void setFileId(String id){
-        this.fileId=id;
     }
 
 }
