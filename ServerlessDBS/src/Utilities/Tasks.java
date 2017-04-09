@@ -92,7 +92,7 @@ public class Tasks {
                 peer.getBackup().deliverPutchunkMessage(putchunk);
             }else{
 
-                if(chunkId.length()==64){
+              /*  if(chunkId.length()==64){
                     try {
                         sleep(6000);
                     } catch (InterruptedException e) {
@@ -118,7 +118,7 @@ public class Tasks {
                     peer.getBackup().setReplicationDegree(Integer.parseInt(value[0]));
                     peer.getBackup().setFileName(value[1]);
                     peer.getBackup().readChunks();
-                }
+                } */
             }
         }
     }

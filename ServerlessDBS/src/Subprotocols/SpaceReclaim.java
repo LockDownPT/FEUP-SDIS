@@ -38,14 +38,17 @@ public class SpaceReclaim {
             this.spaceToBeReduced = peer.getStorageSpace();
         }
 
-        if ((freeSpace - this.spaceToBeReduced) > 0) {
+        if ((freeSpace - this.spaceToBeReduced) >= 0) {
+            System.out.println("FREE SPACE: "+ freeSpace);
             peer.setStorageSpace(storageSpace - spaceToBeReduced);
+            peer.saveMetadataToDisk();
             return false;
         } else {
             spaceToBeReduced -= freeSpace;
             peer.setStorageSpace(peer.getStorageSpace() - freeSpace);
         }
 
+        peer.saveMetadataToDisk();
         return true;
     }
 

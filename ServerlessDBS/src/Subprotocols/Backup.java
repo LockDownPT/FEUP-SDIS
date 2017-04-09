@@ -38,8 +38,15 @@ public class Backup {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
+
+        deliverPutchunkMessage(request);
+
+        //For a threaded backup comment previous statement and uncomment next 2 sentences
+
+        /*
         Mailman m = new Mailman(request, peer);
         m.startMailmanThread();
+        */
 
     }
 
@@ -141,10 +148,6 @@ public class Backup {
         if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
             System.out.println("Replication degree not achived");
         }
-
-        if(Integer.parseInt(message.getMessageHeader().getChunkNo())==numberOfChunks){
-            finishTask(message.getMessageHeader().getFileId());
-        }
     }
 
     /**
@@ -232,6 +235,10 @@ public class Backup {
             System.out.println("IOException:");
             e.printStackTrace();
         }
+
+        if(peer.getVersion().equals("1.1"))
+            finishTask(fileId);
+
     }
 
     public String getFileName() {

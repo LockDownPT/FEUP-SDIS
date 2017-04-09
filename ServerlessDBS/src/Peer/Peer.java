@@ -101,6 +101,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             backup.finishPendingTasks();
         }
 
+        saveMetadataToDisk();
     }
 
     /***
@@ -254,7 +255,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         }
 
         if(version.equals("1.1")){
-            backup.finishTask(fileId+chunkId);
+            //backup.finishTask(fileId+chunkNo);
         }
 
         saveMetadataToDisk();
