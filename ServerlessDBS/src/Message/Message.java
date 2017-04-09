@@ -31,7 +31,7 @@ public class Message {
 
     /**
      * Message header for CHUNK, GETCHUNK and STORED messages
-     * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF>
+     * <MessageType> <Version> <SenderId> <FileId> <ChunkNo><CRLF>
      * @param messageType       indicates message type
      * @param version           indicates the version of the peer that sends the message
      * @param senderId          indicates the sender id
@@ -44,7 +44,7 @@ public class Message {
 
     /**
      * Message header for DELETE messages
-     * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF>
+     * <MessageType> <Version> <SenderId> <FileId> <CRLF>
      * @param messageType       indicates message type
      * @param version           indicates the version of the peer that sends the message
      * @param senderId          indicates the sender id

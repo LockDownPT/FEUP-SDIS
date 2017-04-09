@@ -4,6 +4,7 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
+import Utilities.Tasks;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -19,6 +20,7 @@ public class Backup {
     private String fileId;
     private Peer peer;
     private int numberOfChunks = 1;
+    private Tasks tasks;
 
     public Backup(String file, int replicationDegree, Peer peer) {
         this.fileName = file;
@@ -36,8 +38,15 @@ public class Backup {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
+
+        deliverPutchunkMessage(request);
+
+        //For a threaded backup comment previous statement and uncomment next 2 sentences
+
+        /*
         Mailman m = new Mailman(request, peer);
         m.startMailmanThread();
+        */
 
     }
 
@@ -113,6 +122,10 @@ public class Backup {
      */
     public void deliverPutchunkMessage(Message message) {
 
+        if(peer.getVersion().equals("1.1")){
+            createTask(message.getMessageHeader().getFileId()+message.getMessageHeader().getChunkNo());
+        }
+
         Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
         mailman.startMailmanThread();
 
@@ -169,6 +182,7 @@ public class Backup {
 
     public void readChunks() {
         int chunkNo = 1;
+
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
@@ -178,6 +192,9 @@ public class Backup {
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             this.fileId = createHash(fileName + sdf.format(file.lastModified()));
+
+            if(peer.getVersion().equals("1.1"))
+                createTask(fileId, Integer.toString(replicationDegree) + "-" + fileName);
 
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
@@ -218,6 +235,10 @@ public class Backup {
             System.out.println("IOException:");
             e.printStackTrace();
         }
+
+        if(peer.getVersion().equals("1.1"))
+            finishTask(fileId);
+
     }
 
     public String getFileName() {
@@ -248,5 +269,34 @@ public class Backup {
         return numberOfChunks;
     }
 
+    public void createTask(String chunkId){
+        tasks.addTask(chunkId);
+    }
+
+    public void createTask(String fileId, String repDeg){
+        System.out.println(fileId);
+        System.out.println(repDeg);
+        tasks.addTask(fileId,repDeg);
+    }
+
+
+    public void finishTask(String chunkId){
+        tasks.finishTask(chunkId);
+    }
+
+    public void finishPendingTasks(){
+
+            tasks = new Tasks(peer);
+
+            //loads pending tasks from disk
+            tasks.loadTasks();
+
+            //finishes pending tasks
+            tasks.finishPendingTasks();
+    }
+
+    public void setFileName(String fileName){
+        this.fileName=fileName;
+    }
 }
 

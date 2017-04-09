@@ -96,7 +96,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         spaceReclaimProtocol = new SpaceReclaim(this);
         backup = new Backup(this);
 
-        loadMetadataFromDisk();
+        //Sends pending PUTCHUNKS
+        if(this.version.equals("1.1")){
+            backup.finishPendingTasks();
+        }
+
+        saveMetadataToDisk();
     }
 
     /***
@@ -108,6 +113,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
 
         this.backup = new Backup(file, replicationDegree, this);
+
+        //Finishes sendind pending PUTCHUNKS (if any)
+        backup.finishPendingTasks();
 
         //Reads chunks from a file and sends chunks to backup broadcast channel
         backup.readChunks();
@@ -245,6 +253,11 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             int temp = Integer.parseInt(currentReplicationDegree);
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
+
+        if(version.equals("1.1")){
+            //backup.finishTask(fileId+chunkNo);
+        }
+
         saveMetadataToDisk();
     }
 
@@ -335,7 +348,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
-    private void loadDataFromFile(File file, String filePath, Map data) {
+    public void loadDataFromFile(File file, String filePath, Map data) {
         if (file.exists() && !file.isDirectory()) {
             Properties properties = new Properties();
             try {
@@ -480,14 +493,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     }
 
     public String getFileIdFromChunkId(String chunkId) {
-
-        System.out.print("FILE ID: " + chunkId.substring(0, 64));
         return chunkId.substring(0, 64);
     }
 
     public String getChunkNoFromChunkId(String chunkId) {
-
-        System.out.println("CHUNK NO: " + chunkId.substring(64, chunkId.length()));
         return chunkId.substring(64, chunkId.length());
     }
 
@@ -558,5 +567,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     public Map<String, String> getChunksReplicationDegree() {
         return chunksReplicationDegree;
     }
+
 }
 
