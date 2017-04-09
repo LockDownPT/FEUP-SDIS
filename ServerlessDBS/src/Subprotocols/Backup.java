@@ -147,6 +147,9 @@ public class Backup {
         }
         if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
             System.out.println("Replication degree not achived");
+            if(peer.getVersion().equals("1.1")){
+                finishTask(message.getMessageHeader().getFileId()+ message.getMessageHeader().getChunkNo());
+            }
         }
     }
 
