@@ -32,7 +32,7 @@ public class Delete {
         this.peer = peer;
     }
 
-    public void getFileId() {
+    private void getFileId() {
         String path = "./TestFiles/" + this.fileName;
         File file = new File(path);
 
@@ -48,20 +48,17 @@ public class Delete {
         updateRepDeg(this.fileId);
     }
 
-    public void updateRepDeg(String file) {
+    private void updateRepDeg(String file) {
 
-        for (Map.Entry<String, String[]> entry : peer.getMapChunkIdToFileAndChunkNo().entrySet()) {
+        for (Map.Entry<String, String> entry : peer.getChunksReplicationDegree().entrySet()) {
             String key = entry.getKey();
-            String[] value = entry.getValue();
-            if (Objects.equals(value[0], file)) {
+            String value = peer.getFileIdFromChunkId(entry.getKey());
+            if (Objects.equals(value, file)) {
                 peer.removeChunkFromStoredChunks(key);
                 peer.removeFromChunksReplicationDegree(key);
-                peer.removeMapingChunkIdToFileAndChunkNo(key);
             }
-
         }
-
-        peer.saveRepDegInfoToDisk();
+        peer.saveMetadataToDisk();
     }
 
     public void deleteChunks(String fileId) {
@@ -69,17 +66,20 @@ public class Delete {
         String path = "./" + peer.getPeerId() + "/" + fileId;
         File file = new File(path);
         deleteFolder(file);
-        if (peer.getDeleteProtocol() != null)
+        if (peer.getDeleteProtocol() != null) {
             peer.getDeleteProtocol().updateRepDeg(fileId);
+        }
+
     }
 
-    public void deleteFolder(File folder) {
+    private void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if (files != null) { //some JVMs return null for empty dirs
             for (File f : files) {
                 if (f.isDirectory()) {
                     deleteFolder(f);
                 } else {
+                    peer.setUsedSpace(peer.getUsedSpace() - (int) f.length());
                     f.delete();
                 }
             }

@@ -8,11 +8,22 @@ import java.net.DatagramPacket;
 
 public class MDB extends Channel {
 
-    public MDB(String address, int port, Peer creator) throws IOException {
-        super(address, port, creator);
+    /**
+     * Multicast Data Backup channel
+     *
+     * @param address multicast address
+     * @param port    multicast port
+     * @param peer    peer that listens on the multicast
+     * @throws IOException
+     */
+    public MDB(String address, int port, Peer peer) throws IOException {
+        super(address, port, peer);
         setThread(new MDB.MDBThread());
     }
 
+    /**
+     * Channel thread that concurrently listens for incoming packets
+     */
     public class MDBThread extends Thread {
         public void run() {
             try {

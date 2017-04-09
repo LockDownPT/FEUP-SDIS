@@ -23,14 +23,14 @@ public class Mailman {
     public Mailman(DatagramPacket message, Peer creator) {
         this.message = new Message(message);
         this.mailman = new ReceiverThread();
-        this.type="RECEIVER";
+        this.type = "RECEIVER";
         this.peer = creator;
     }
 
     public Mailman(Message message, Peer creator) {
         this.message = message;
         this.mailman = new SenderThread();
-        this.type="SENDER";
+        this.type = "SENDER";
         this.peer = creator;
     }
 
@@ -38,7 +38,7 @@ public class Mailman {
         this.message = message;
         this.addr = addr;
         this.port = port;
-        this.type="DELIVER";
+        this.type = "DELIVER";
         this.messageType = messageType;
         this.mailman = new DeliverMessageThread();
         this.peer = peer;
@@ -48,18 +48,15 @@ public class Mailman {
      * Starts thread
      */
     public void startMailmanThread() {
-        switch (type){
+        switch (type) {
             case "SENDER":
                 peer.getSenderExecutor().submit(mailman);
-                System.out.println("SENDER");
                 break;
             case "RECEIVER":
                 peer.getReceiverExecutor().submit(mailman);
-                System.out.println("RECEIVER");
                 break;
             case "DELIVER":
                 peer.getDeliverExecutor().submit(mailman);
-                System.out.println("DELIVER");
                 break;
             default:
                 break;
@@ -84,7 +81,7 @@ public class Mailman {
         try {
             socket = new DatagramSocket();
             byte[] buf = message.getMessageBytes(messageType);
-            InetAddress address = InetAddress.getByName(addr);
+            InetAddress address = InetAddress.getByName(addr.replace("/", ""));
             packet = new DatagramPacket(buf, buf.length, address, port);
             socket.send(packet);
 
@@ -107,16 +104,15 @@ public class Mailman {
                     peer.getBackup().deliverPutchunkMessage(message);
                     break;
                 case STORED:
-                    if (peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0")) {
                         peer.getBackup().deliverStoredMessage(message);
-                    else
+                    } else {
                         peer.getBackup().deliverStoredMessageEnhanced(message);
+                        System.out.print("Enhanced BACKUP");
+                    }
                     break;
                 case GETCHUNK:
                     peer.getRestoreProtocol().deliverGetchunkMessage(message);
-                    break;
-                case CHUNK:
-                    peer.getRestoreProtocol().deliverChunkMessage(message);
                     break;
                 case DELETE:
                     if (peer.getVersion().equals("1.0"))
@@ -143,17 +139,17 @@ public class Mailman {
 
     public class ReceiverThread implements Runnable {
         public void run() {
-            System.out.println("Received request:" + message.getMessageHeader().getMessageType());
             //Ignores requests sent by itself
             if (message.getMessageHeader().getSenderId().equals(peer.getPeerId()))
                 return;
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
-                    if (peer.getVersion().equals("1.0"))
-                        peer.getBackup().storeChunk(message);
-                    else
-                        peer.getBackup().storeChunkEnhanced(message);
                     peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
+                    if (peer.getVersion().equals("1.0")) {
+                        peer.getBackup().storeChunk(message);
+                    } else {
+                        peer.getBackup().storeChunkEnhanced(message);
+                    }
                     break;
                 case STORED:
                     if (peer.getVersion().equals("1.0"))
