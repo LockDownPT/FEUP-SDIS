@@ -7,8 +7,6 @@ import Subprotocols.Backup;
 import Subprotocols.Delete;
 import Subprotocols.Restore;
 import Subprotocols.SpaceReclaim;
-import Utilities.Tasks;
-import javafx.concurrent.Task;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -247,7 +245,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             chunksReplicationDegree.put(chunkId, String.valueOf(temp + 1));
         }
 
-        //tasks.finishTask(fileId+chunkId);
+        if(version.equals("1.1")){
+            backup.finishTask(fileId+chunkId);
+        }
+
         saveMetadataToDisk();
     }
 

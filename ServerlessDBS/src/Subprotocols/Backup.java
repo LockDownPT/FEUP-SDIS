@@ -27,6 +27,18 @@ public class Backup {
         this.replicationDegree = replicationDegree;
         this.fileId = null;
         this.peer = peer;
+
+        //Space reclaim enhancement
+        if(peer.getVersion().equals("1.1")){
+
+            tasks = new Tasks(peer);
+
+            //loads pending tasks from disk
+            tasks.loadTasks();
+
+            //finishes pending tasks
+            tasks.finishPendingTasks();
+        }
     }
 
     public Backup(Peer peer) {
@@ -151,6 +163,10 @@ public class Backup {
         if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
             System.out.println("Replication degree not achived");
         }
+
+        if(Integer.parseInt(message.getMessageHeader().getChunkNo())==numberOfChunks){
+            finishTask(message.getMessageHeader().getFileId());
+        }
     }
 
     /**
@@ -185,6 +201,7 @@ public class Backup {
 
     public void readChunks() {
         int chunkNo = 1;
+
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
@@ -194,7 +211,7 @@ public class Backup {
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             this.fileId = createHash(fileName + sdf.format(file.lastModified()));
-
+            createTask(fileId, Integer.toString(replicationDegree));
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
             int numSplits = (int) Math.floor(fileLength / maxSizeChunk);
@@ -268,6 +285,14 @@ public class Backup {
         tasks.addTask(chunkId);
     }
 
+    public void createTask(String fileId, String repDeg){
+        tasks.addTask(fileId,repDeg);
+    }
+
+
+    public void finishTask(String chunkId){
+        tasks.finishTask(chunkId);
+    }
 
 }
 

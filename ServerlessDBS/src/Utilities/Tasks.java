@@ -13,19 +13,30 @@ import java.util.Properties;
 import Message.Message;
 import Peer.Peer;
 
+import static Utilities.Constants.DELETE;
 import static Utilities.Constants.PUTCHUNK;
+import static java.lang.Thread.sleep;
 
 public class Tasks {
 
-    Properties pendingTasks = new Properties();
+    Properties pendingTasks;
     private Peer peer;
 
     public Tasks(Peer peer){
         this.peer=peer;
+        this.pendingTasks= new Properties();
     }
 
     public void addTask(String chunkId){
         pendingTasks.setProperty(chunkId,chunkId);
+        saveTasks();
+    }
+
+    public void addTask(String fileId, String repDeg){
+        System.out.println(fileId);
+        System.out.println(repDeg);
+
+        pendingTasks.setProperty(fileId,repDeg);
         saveTasks();
     }
 
@@ -62,10 +73,10 @@ public class Tasks {
 
         for (String chunkId : pendingTasks.stringPropertyNames()) {
 
-            String fileId = peer.getFileIdFromChunkId(chunkId);
-            String chunkNo = peer.getChunkNoFromChunkId(chunkId);
+            if(peer.getStoredChunks().containsKey(chunkId)){
 
-            if(peer.getStoredChunks().containsKey(fileId+chunkNo)){
+                String fileId = peer.getFileIdFromChunkId(chunkId);
+                String chunkNo = peer.getChunkNoFromChunkId(chunkId);
 
                 Message putchunk = new Message(PUTCHUNK,peer.getVersion(),peer.getPeerId(),fileId,chunkNo,Integer.toString(peer.getDesiredReplicationDegree(fileId+chunkNo)));
 
@@ -80,7 +91,27 @@ public class Tasks {
                 peer.getBackup().setFileId(fileId);
                 peer.getBackup().deliverPutchunkMessage(putchunk);
             }else{
-                
+
+                if(chunkId.length()==64){
+                    try {
+                        sleep(6000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    Message deleteFileMessage = new Message(DELETE, peer.getVersion(), peer.getPeerId(), chunkId);
+                    peer.getDeleteProtocol().deliverDeleteMessage(deleteFileMessage);
+
+                    try {
+                        sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    peer.getBackup().setFileId(chunkId);
+                    peer.getBackup().setReplicationDegree(Integer.parseInt(pendingTasks.getProperty(chunkId)));
+                    peer.getBackup().readChunks();
+                }
             }
         }
     }
