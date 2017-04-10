@@ -16,7 +16,7 @@ function compile {
 
 function runSnooper {
 
-	xterm -e "java -jar McastSnooper.jar $MCip:$MCport $MDBip:$MDBport $MDRip:$MDRport
+	xterm -e "java -jar McastSnooper.jar $1:$2 $3:$4 $5:$6
 " &
 	
 }
@@ -32,7 +32,7 @@ function launchPeers {
         count=1
 	while [ "$count" -le $1 ]
 	do	
-    		xterm -e "java Peer.InitPeer $2 $count 200$count $MCip:$MCport $MDBip:$MDBport $MDRip:$MDRport" & $SHELL &
+    		xterm -e "java Peer.InitPeer $2 $count 200$count $3 $4 $5 $6 $7 $8" & $SHELL &
 		count=$(( $count + 1 ))
 	done
 }
@@ -42,15 +42,15 @@ if (( $# != 8 )); then
 fi
 
 
-$MCip=$3
-$MCport=$4
-$MDBip=$5
-$MDBport=$6
-$MDRip=$7
-$MDRport=$8
+MCip=$3
+MCport=$4
+MDBip=$5
+MDBport=$6
+MDRip=$7
+MDRport=$8
 compile
-runSnooper
+runSnooper $MCip $MCport $MDBip $MDBport $MDRip $MDRport
 cd bin
 startRMI
-launchPeers $1 $2
+launchPeers $1 $2 $MCip $MCport $MDBip $MDBport $MDRip $MDRport
 cd .. &
