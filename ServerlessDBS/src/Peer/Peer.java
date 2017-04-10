@@ -380,6 +380,13 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+    /**
+     * Loads metadata from disk
+     *
+     * @param file file containing the information
+     * @param filePath file path
+     * @param data map that stores the data
+     */
     public void loadDataFromFile(File file, String filePath, Map data) {
         if (file.exists() && !file.isDirectory()) {
             Properties properties = new Properties();

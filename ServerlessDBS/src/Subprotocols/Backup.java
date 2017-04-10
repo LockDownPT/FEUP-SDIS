@@ -22,6 +22,12 @@ public class Backup {
     private int numberOfChunks = 1;
     private Tasks tasks;
 
+    /**
+     * Initiates the backup of a file
+     * @param file file to backup
+     * @param replicationDegree desired replication degree
+     * @param peer peer that calls the backup protocol
+     */
     public Backup(String file, int replicationDegree, Peer peer) {
         this.fileName = file;
         this.replicationDegree = replicationDegree;
@@ -29,11 +35,21 @@ public class Backup {
         this.peer = peer;
     }
 
+    /**
+     * Creates backup protocol
+     * @param peer peer that calls the backup protocol
+     */
     public Backup(Peer peer) {
         this.fileId = null;
         this.peer = peer;
     }
 
+    /**
+     * If in thread backup mode calls the mailman runnable that sends the chunks
+     *
+     * @param chunk chunk to be sent
+     * @param chunkNo chunk number
+     */
     public void sendChunk(byte[] chunk, int chunkNo) {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
@@ -188,6 +204,11 @@ public class Backup {
 
     }
 
+    /**
+     * Reads a file, and splits it in chunks
+     * Then calls the send chunk function for each chunk
+     * Also adds the file to the pending tasks and removes once finished
+     */
     public void readChunks() {
         int chunkNo = 0;
 
@@ -288,10 +309,17 @@ public class Backup {
         tasks.addTask(fileId, repDeg);
     }
 
+    /**
+     * Sets a task as done
+     * @param chunkId fileId + chunkNo
+     */
     public void finishTask(String chunkId) {
         tasks.finishTask(chunkId);
     }
 
+    /**
+     * Finishes all pending tasks
+     */
     public void finishPendingTasks() {
 
         tasks = new Tasks(peer);

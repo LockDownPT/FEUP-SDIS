@@ -66,7 +66,10 @@ public class Mailman {
     }
 
     /**
-     * Starts thread
+     * Starts mailman thread based on type
+     * This way there is a pool thread for sending and receiving messages
+     * allowing them to not enter in deadlock if message incoming rate
+     * is bigger than outgoing
      */
     public void startMailmanThread() {
         switch (type) {
@@ -120,6 +123,9 @@ public class Mailman {
         }
     }
 
+    /**
+     * Thread in charge of sending messages base on type
+     */
     public class SenderThread implements Runnable {
         public void run() {
             System.out.println("Sended request:" + message.getMessageHeader().getMessageType());
@@ -157,6 +163,9 @@ public class Mailman {
 
     }
 
+    /**
+     * Handles received requestes
+     */
     public class ReceiverThread implements Runnable {
         public void run() {
             //Ignores requests sent by itself

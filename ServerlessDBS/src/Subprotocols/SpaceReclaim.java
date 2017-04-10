@@ -3,6 +3,7 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
+import com.sun.corba.se.impl.util.PackagePrefixChecker;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -20,15 +21,31 @@ public class SpaceReclaim {
     private int spaceToBeReduced = 0;
     private Map<String, Boolean> receivedPutchunks = new ConcurrentHashMap<>();
 
+    /**
+     * Initiates spacereclaim protocol
+     * @param peer peer that calls the protocol
+     * @param spaceToBeReduced space in bytes to be reduced
+     */
     public SpaceReclaim(Peer peer, int spaceToBeReduced) {
         this.peer = peer;
         this.spaceToBeReduced = spaceToBeReduced;
     }
 
+    /**
+     * Initiates empty space reclaim protocol
+     *
+     * @param peer peer that starts the protocol
+     */
     public SpaceReclaim(Peer peer) {
         this.peer = peer;
     }
 
+
+    /**
+     * Updates peer storage base on spaced to be reclaimed
+     * IF it has more free space, than requested than does nothing
+     * @return returns boolean that tells if there is a need to delete files
+     */
     private boolean updatePeerStorage() {
         int storageSpace = peer.getStorageSpace();
         int usedSpace = peer.getUsedSpace();
@@ -52,6 +69,12 @@ public class SpaceReclaim {
         return true;
     }
 
+
+    /**
+     * Starts deleting chunks, first the ones with high replication degree
+     * then does with some replication
+     * and the unique files
+     */
     public void start() {
         if (updatePeerStorage()) {
             if (findExtraChunks()) {
@@ -68,6 +91,11 @@ public class SpaceReclaim {
     }
 
 
+    /**
+     * Deletes chunks with replications degree bigger than the desired
+     *
+     * @return returns true, reclaimed space protocol is finished
+     */
     private boolean findExtraChunks() {
 
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
@@ -87,6 +115,11 @@ public class SpaceReclaim {
         return false;
     }
 
+    /**
+     * Deletes chunks with lower replication degree than desired but bigger than 1
+     *
+     * @return returns true, reclaimed space protocol is finished
+     */
     private boolean removeChunksWithLowerRepDeg() {
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
@@ -101,6 +134,9 @@ public class SpaceReclaim {
         return false;
     }
 
+    /**
+     * Deletes chunks with replication degree = 1
+     */
     private void removeChunksWithOneRepDeg() {
         for (Map.Entry<String, String> entry : peer.getStoredChunks().entrySet()) {
             String key = entry.getKey();
@@ -110,6 +146,11 @@ public class SpaceReclaim {
         }
     }
 
+    /**
+     * Deletes chunk from disk
+     *
+     * @param chunkId fileId+chunkNo
+     */
     public void removeChunk(String chunkId) {
 
         System.out.println("CHUNK ID: " + chunkId);
@@ -135,6 +176,10 @@ public class SpaceReclaim {
 
     }
 
+    /**
+     * Prepares REMOVED message
+     * @param chunkId removed chunkId
+     */
     private void sendRemovedMessage(String chunkId) {
 
         Message message = new Message(REMOVED, peer.getVersion(), peer.getPeerId(), peer.getFileIdFromChunkId(chunkId), peer.getChunkNoFromChunkId(chunkId));
@@ -143,6 +188,10 @@ public class SpaceReclaim {
 
     }
 
+    /**
+     * Delivers removed message
+     * @param message message to be sent
+     */
     public void deliverRemovedMessage(Message message) {
 
         Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), REMOVED, peer);
@@ -150,6 +199,10 @@ public class SpaceReclaim {
 
     }
 
+    /**
+     * Updates chunk replication degree after removing it
+     * @param message message REMOVED
+     */
     public void updateChunkRepDegree(Message message) {
 
         peer.decreaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
@@ -164,6 +217,11 @@ public class SpaceReclaim {
 
     }
 
+    /**
+     * Starts backup protocol
+     * @param message message REMOVED
+     * @param desiredRepDeg desired replication degree
+     */
     public void startBackupProtocol(Message message, int desiredRepDeg) {
         try {
             receivedPutchunks.put(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo(), false);
@@ -186,6 +244,10 @@ public class SpaceReclaim {
         }
     }
 
+    /**
+     * Increases received PUTCHUNK counter
+     * @param message PUTCHUNK message
+     */
     public void increaseReceivedPUTCHUNK(Message message) {
 
         receivedPutchunks.put(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo(), true);
