@@ -241,10 +241,6 @@ public class Message {
         this.packetIP = packetIP;
     }
 
-    public int getPacketPort() {
-        return packetPort;
-    }
-
     public void setPacketPort(int packetPort) {
         this.packetPort = packetPort;
     }

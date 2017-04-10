@@ -426,6 +426,12 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         }
     }
 
+    /**
+     * Returns the desired replication degree of a chunk from its key
+     *
+     * @param key   fileId+chunkNo
+     * @return returns the desired replication degree of the chunk
+     */
     public int getDesiredReplicationDegree(String key) {
         return Integer.parseInt(storedChunks.get(key));
     }
@@ -487,40 +493,72 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     }
 
+    /**
+     * Removes chunk from sent chunks database
+     *
+     * @param fileId    fileId of the chunk
+     * @param chunkNo   chunk number
+     */
     public void removeChunkFromSentChunks(String fileId, String chunkNo) {
         sentChunks.remove(fileId + chunkNo);
     }
 
+    /**
+     * Returns stored chunks hashmap
+     *
+     * @return Returns stored chunks hashmap
+     */
     public Map<String, String> getStoredChunks() {
         return storedChunks;
     }
 
+    /**
+     * Getter for the space reclaim protocol
+     *
+     * @return returns the space reclaim protocol
+     */
     public SpaceReclaim getSpaceReclaimProtocol() {
         return spaceReclaimProtocol;
     }
 
 
+    /**
+     * Adds message to the stack of received delete messages
+     *
+     * @param message DELETE message
+     */
     public void addMessageToStackDelete(Message message) {
         String fileId = message.getMessageHeader().getFileId();
         this.stackDeleteMessage.put(fileId, message);
 
     }
 
+    /**
+     * Removes message from the stack
+     *
+     * @param fileId fileId of the deleted file
+     */
     public void removeMessageFromStackDelete(String fileId) {
         this.stackDeleteMessage.remove(fileId);
 
     }
 
+    /**
+     * Removes chunk from the stored chunks hashmap
+     *
+     * @param chunkID fileId +  chunk number
+     */
     public void removeChunkFromStoredChunks(String chunkID) {
         this.storedChunks.remove(chunkID);
     }
 
+    /**
+     * Removes chunk from chunks replication degree hashmap
+     *
+     * @param chunkId fileId + chunk number
+     */
     public void removeFromChunksReplicationDegree(String chunkId) {
         this.chunksReplicationDegree.remove(chunkId);
-    }
-
-    public void setChunksReplicationDegree(String chunkId, String degree) {
-        this.chunksReplicationDegree.put(chunkId, degree);
     }
 
     public ExecutorService getReceiverExecutor() {
@@ -599,10 +637,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return version;
     }
 
-    public String getPeerAccessPoint() {
-        return peerAccessPoint;
-    }
-
     public Delete getDeleteProtocol() {
         return deleteProtocol;
     }
@@ -613,10 +647,6 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     public Map<String, Message> getStackDeleteMessage() {
         return stackDeleteMessage;
-    }
-
-    public void removeReceivedStoredMessage(String key) {
-        this.receivedStoredMessages.remove(key);
     }
 }
 

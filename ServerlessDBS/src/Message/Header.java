@@ -71,6 +71,14 @@ public class Header {
 
     }
 
+    /**
+     * Message header for Alive messages
+     * <MessageType> <Version> <SenderId> <FileId> <ChunkNo> <CRLF>
+     *
+     * @param MessageType indicates message type
+     * @param Version     indicates the version of the peer that sends the message
+     * @param SenderId    indicates the sender id
+     */
     public Header(String MessageType, String Version, String SenderId) {
 
         this.messageType = MessageType.trim();

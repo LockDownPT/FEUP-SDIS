@@ -254,10 +254,6 @@ public class Backup {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public int getReplicationDegree() {
         return replicationDegree;
     }
@@ -305,6 +301,10 @@ public class Backup {
 
         //finishes pending tasks
         tasks.finishPendingTasks();
+    }
+
+    public void setFileName(String s) {
+        fileName=s;
     }
 }
 

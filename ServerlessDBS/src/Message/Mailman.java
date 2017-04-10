@@ -19,7 +19,13 @@ public class Mailman {
     private String messageType;
     private String type;
 
-
+    /**
+     * Object in charge of receiving datagram packet and creating the corresponding message
+     * and send it to the right handler.
+     *
+     * @param message received datagram packet
+     * @param creator peer that received the packet
+     */
     public Mailman(DatagramPacket message, Peer creator) {
         this.message = new Message(message);
         this.mailman = new ReceiverThread();
@@ -27,6 +33,12 @@ public class Mailman {
         this.peer = creator;
     }
 
+    /**
+     * Receives a message the is going to be sent and handles it accordingly to the message type
+     *
+     * @param message message to be sent
+     * @param creator peer that is sending the message
+     */
     public Mailman(Message message, Peer creator) {
         this.message = message;
         this.mailman = new SenderThread();
@@ -34,6 +46,15 @@ public class Mailman {
         this.peer = creator;
     }
 
+    /**
+     * Mailman that actually send the message to the multicast
+     *
+     * @param message message to be sent to the multicast
+     * @param addr multicast address
+     * @param port multicast port
+     * @param messageType message type
+     * @param peer peer that is sending the message
+     */
     public Mailman(Message message, String addr, int port, String messageType, Peer peer) {
         this.message = message;
         this.addr = addr;
@@ -90,6 +111,9 @@ public class Mailman {
         }
     }
 
+    /**
+     * Thread that delivers any message to a given multicast
+     */
     public class DeliverMessageThread implements Runnable {
         public void run() {
             deliverMessage(message, addr, port, messageType);
