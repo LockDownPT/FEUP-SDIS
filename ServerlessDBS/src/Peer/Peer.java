@@ -181,7 +181,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         deleteProtocol = new Delete(file, this);
 
 
-        deleteProtocol.deleteChunks();
+        deleteProtocol.start();
 
 
         System.out.println("Finished Reading Chunks");
