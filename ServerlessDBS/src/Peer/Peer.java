@@ -52,6 +52,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      * String holds the current replication degree
      */
     private Map<String, String> chunksReplicationDegree = new ConcurrentHashMap<>();
+
     /**
      * Holds information regarding if the chunk has been sent
      * String is a par of fileId+chunkNo
@@ -59,8 +60,17 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
      */
     private Map<String, Boolean> sentChunks = new ConcurrentHashMap<>();
 
+    /**
+     * Holds information about received DELETE Messages
+     * String is the id of the file to be deleted
+     * Message is the received DELETE message
+     */
     private Map<String, Message> stackDeleteMessage = new ConcurrentHashMap<>();
 
+    /**
+     * Holds information about received Stored Messages
+     * String is the unique combination of FileId+ChunkNo+SenderId
+     */
     private Map<String, String> receivedStoredMessages = new ConcurrentHashMap<>();
 
     public Peer(String version, String peerId, String peerAccessPoint, String mc_ip, String mdb_ip, String mdr_ip, int mc_port, int mdb_port, int mdr_port) throws IOException {
@@ -604,6 +614,10 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     public Map<String, Message> getStackDeleteMessage() {
         return stackDeleteMessage;
+    }
+
+    public void removeReceivedStoredMessage(String key){
+        this.receivedStoredMessages.remove(key);
     }
 }
 
