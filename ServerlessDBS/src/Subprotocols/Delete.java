@@ -31,22 +31,24 @@ public class Delete {
         this.peer = peer;
     }
 
-    private void getFileId() {
-        String path = "./TestFiles/" + this.fileName;
-        File file = new File(path);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        this.fileId = createHash(fileName + sdf.format(file.lastModified()));
-    }
-
-    public void deleteChunks() {
-        getFileId();
+    /**
+     * This function starts the DELETE protocol by sendig the DELETE request and updating the
+     * Replication Degree of the deleted file.
+     */
+    public void start() {
+        setFileId();
         Message request = new Message(DELETE, peer.getVersion(), peer.getPeerId(), this.fileId);
         Mailman messageHandler = new Mailman(request, peer);
         messageHandler.startMailmanThread();
         updateRepDeg(this.fileId);
     }
 
+
+    /**
+     * This function updates the Replication Degree of the deleted file and the related chunks.
+     * @param file
+     */
     private void updateRepDeg(String file) {
 
         for (Map.Entry<String, String> entry : peer.getChunksReplicationDegree().entrySet()) {
@@ -60,6 +62,13 @@ public class Delete {
         peer.saveMetadataToDisk();
     }
 
+
+
+    /**
+     *  After received tha DELETE request, the peer deletes the folder with the given fileId
+     *  and updates the Replication Degree.
+     * @param fileId
+     */
     public void deleteChunks(String fileId) {
 
         String path = "./" + peer.getPeerId() + "/" + fileId;
@@ -71,6 +80,10 @@ public class Delete {
 
     }
 
+    /**
+     * This function delete all the chunks of the folder and update the size of the peer.
+     * @param folder
+     */
     private void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if (files != null) { //some JVMs return null for empty dirs
@@ -87,7 +100,9 @@ public class Delete {
     }
 
     /**
-     *
+     * Sends DELETE request for the multicast control channel (MC) with the following format:
+     * DELETE <Version> <SenderId> <FileId> <CRLF><CRLF>
+     * It sends 3 DELETE requests to ensure that all peers receive it
      */
     public void deliverDeleteMessage(Message message) {
         for (int i = 0; i < 3; i++) {
@@ -98,25 +113,11 @@ public class Delete {
     }
 
 
-    public void deliverDeleteMessageEhnanced(Message message) {
-        for (int i = 0; i < 3; i++) {
-            Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETE, peer);
-            mailman.startMailmanThread();
-        }
-    }
-
-    public void deleteChunksEnhanced(Message message) {
-        fileId = message.getMessageHeader().getFileId();
-        String path = "./" + peer.getPeerId() + "/" + fileId;
-        File file = new File(path);
-        deleteFolder(file);
-        if (peer.getDeleteProtocol() != null)
-            peer.getDeleteProtocol().updateRepDeg(fileId);
-
-
-
-    }
-
+    /**
+     * When a peer starts to run, it sends
+     * on the multicast control channel (MC) a message to announce that it's alive with the following format:
+     * ALIVE <Version> <SenderId> <CRLF><CRLF>
+     */
     public void sendAliveMessage(){
 
         Message request = new Message(ALIVE, peer.getVersion(), peer.getPeerId());
@@ -124,6 +125,13 @@ public class Delete {
         messageHandler.startMailmanThread();
     }
 
+
+    /**
+     * When a peer starts to run, it sends
+     * on the multicast control channel (MC) a message to announce that it's alive with the following format:
+     * ALIVE <Version> <SenderId> <CRLF><CRLF>
+     * @param message
+     */
     public void deliverAliveMessage(Message message) {
 
         Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), ALIVE, peer);
@@ -131,17 +139,28 @@ public class Delete {
     }
 
 
-
+    /**
+     * When a peer receive a ALIVE request, it checks all the delete messages that it already sent
+     * and resend all of it.
+     */
     public void resendDeleteMessage() {
 
         for (Map.Entry<String, Message> entry : peer.getStackDeleteMessage().entrySet()) {
-            String key = entry.getKey();
             Message message = entry.getValue();
-
             deliverDeleteMessage(message);
-
         }
-
     }
+
+    /**
+     * This function set the parameter fileID.
+     */
+    private void setFileId() {
+
+        String path = "./TestFiles/" + this.fileName;
+        File file = new File(path);
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        this.fileId = createHash(fileName + sdf.format(file.lastModified()));
+    }
+
 }
 

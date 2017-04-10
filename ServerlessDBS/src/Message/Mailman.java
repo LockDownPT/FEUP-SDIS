@@ -118,7 +118,7 @@ public class Mailman {
                     if (peer.getVersion().equals("1.0"))
                     peer.getDeleteProtocol().deliverDeleteMessage(message);
                     else
-                        peer.getDeleteProtocol().deliverDeleteMessageEhnanced(message);
+                        peer.getDeleteProtocol().deliverDeleteMessage(message);
                     break;
                 case REMOVED:
                     peer.getSpaceReclaimProtocol().deliverRemovedMessage(message);
@@ -169,7 +169,7 @@ public class Mailman {
                     if (peer.getVersion().equals("1.0"))
                     peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
                     else{
-                        peer.getDeleteProtocol().deleteChunksEnhanced(message);
+                        peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
                         peer.addMessageToStackDelete(message);}
                     break;
                 case ALIVE:
