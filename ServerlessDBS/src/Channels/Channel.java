@@ -44,14 +44,16 @@ public class Channel {
     DatagramPacket receiveRequests(String protocol) throws IOException {
 
         byte[] buf;
+        buf = new byte[70000];
 
-        if ("BACKUP".equals(protocol) || "RESTORE".equals(protocol)) {
+        /*if ("BACKUP".equals(protocol) || "RESTORE".equals(protocol)) {
             buf = new byte[70000];
         } else {
             buf = new byte[256];
-        }
+        }*/
         DatagramPacket request = new DatagramPacket(buf, buf.length);
         mc_socket.receive(request);
+        System.out.println("PACKET LENGHT: " + request.getLength());
         return request;
     }
 

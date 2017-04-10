@@ -124,6 +124,9 @@ public class Message {
         messageHeader.setSenderId(requestHeader[2]);
         messageHeader.setFileId(requestHeader[3]);
         messageHeader.setChunkNo(requestHeader[4]);
+        System.out.println("HEADER LENGTH: " + header.length());
+        System.out.println("PACKET LENGTH2: " + length);
+        System.out.println("BODY LENGTH: " + (length - header.length() - 4));
         bodyContent = new byte[length - header.length() - 4];
         message.read(bodyContent);
         setBody(bodyContent);
@@ -181,6 +184,9 @@ public class Message {
                 messageHeader.setFileId(requestHeader[3]);
                 messageHeader.setChunkNo(requestHeader[4]);
                 bodyContent = new byte[packet.getLength() - header.length() - 4];
+                System.out.println("HEADER LENGTH: " + header.length());
+                System.out.println("PACKET LENGTH2: " + packet.getLength());
+                System.out.println("BODY LENGTH: " + (packet.getLength() - header.length() - 4));
                 message.read(bodyContent);
                 setBody(bodyContent);
                 break;
