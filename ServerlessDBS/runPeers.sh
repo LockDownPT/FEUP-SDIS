@@ -25,7 +25,7 @@ function launchPeers {
         count=1
 	while [ "$count" -le $1 ]
 	do	
-    		xterm -e "java Peer.InitPeer $2 $count 200$count 224.0.0.1 4445 224.0.0.2 4446 224.0.0.3 4447" & $SHELL &
+    		xterm -e "java Peer.InitPeer $2 $count 200$count 224.0.0.0 4445 224.0.0.2 4446 224.0.0.4 4447" & $SHELL &
 		count=$(( $count + 1 ))
 	done
 }
