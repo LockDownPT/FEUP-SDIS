@@ -12,7 +12,6 @@ import java.util.Objects;
 
 import static Utilities.Constants.ALIVE;
 import static Utilities.Constants.DELETE;
-import static Utilities.Constants.DELETED;
 import static Utilities.Utilities.createHash;
 
 public class Delete {
@@ -115,9 +114,6 @@ public class Delete {
             peer.getDeleteProtocol().updateRepDeg(fileId);
 
 
-        Message request = new Message(DELETED, peer.getVersion(), peer.getPeerId(), fileId);
-        Mailman messageHandler = new Mailman(request, peer);
-        messageHandler.startMailmanThread();
 
     }
 
@@ -134,12 +130,7 @@ public class Delete {
         mailman.startMailmanThread();
     }
 
-    public void deliverDeletedMessageEnhanced(Message message) {
 
-        Mailman mailman = new Mailman(message, peer.getMc_ip(), peer.getMc_port(), DELETED, peer);
-        mailman.startMailmanThread();
-
-    }
 
     public void resendDeleteMessage() {
 

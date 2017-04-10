@@ -105,9 +105,9 @@ public class Restore {
 
     private void requestChunks() {
 
-        int chunkNo = 1;
+        int chunkNo = 0;
 
-        while (chunkNo <= numberOfChunks) {
+        while (chunkNo < numberOfChunks) {
             Message request = new Message(GETCHUNK, peer.getVersion(), peer.getPeerId(), this.fileId, Integer.toString(chunkNo));
 
             Mailman messageHandler = new Mailman(request, peer);
@@ -127,7 +127,7 @@ public class Restore {
             dir.mkdir();
             file = new File("./" + peer.getPeerId() + "/Restored Files/" + fileName);
             fop = new FileOutputStream(file, true);
-            for (int i = 1; i <= chunks.size(); i++) {
+            for (int i = 0; i < chunks.size(); i++) {
                 System.out.println((chunks.get(Integer.toString(i))).length);
                 fop.write(chunks.get(Integer.toString(i)));
             }

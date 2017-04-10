@@ -184,13 +184,14 @@ public class Backup {
     }
 
     public void readChunks() {
-        int chunkNo = 1;
+        int chunkNo = 0;
 
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
             String path = "./" + "TestFiles/" + fileName; // windows
             File file = new File(path);
+
 
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
@@ -210,12 +211,12 @@ public class Backup {
             System.out.println(numSplits);
             System.out.println(lastChunkSize);
 
-            for (int chunkId = 1; chunkId < numSplits; chunkId++) {
+            for (int chunkId = 1; chunkId < numSplits ; chunkId++) {
 
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    sendChunk(buf, chunkId);
+                    sendChunk(buf, chunkNo);
                 }
                 chunkNo++;
                 this.numberOfChunks++;
