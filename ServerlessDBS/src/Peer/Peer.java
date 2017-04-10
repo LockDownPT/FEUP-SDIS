@@ -21,8 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-
-
 public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     private Restore restoreProtocol = null;
@@ -257,6 +255,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
 
     /**
      * Increases registry about the number of times a chunk has been replicated
+     *
      * @param message STORED message
      */
     public void increaseReplicationDegree(Message message) {
@@ -268,9 +267,9 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         String chunkId = fileId + chunkNo;
         String currentReplicationDegree = chunksReplicationDegree.get(chunkId);
 
-        if(receivedStoredMessages.get(chunkId+senderId)==null){
+        if (receivedStoredMessages.get(chunkId + senderId) == null) {
 
-            receivedStoredMessages.put(chunkId+senderId,senderId);
+            receivedStoredMessages.put(chunkId + senderId, senderId);
 
             if (currentReplicationDegree == null) {
                 chunksReplicationDegree.put(chunkId, "1");
@@ -280,7 +279,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
             }
 
             if (version.equals("1.1")) {
-                backup.finishTask(fileId+chunkNo);
+                backup.finishTask(fileId + chunkNo);
             }
             saveMetadataToDisk();
         }
@@ -501,18 +500,18 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
     }
 
 
-    public void addMessageToStackDelete(Message message){
+    public void addMessageToStackDelete(Message message) {
         String fileId = message.getMessageHeader().getFileId();
-        this.stackDeleteMessage.put(fileId,message);
+        this.stackDeleteMessage.put(fileId, message);
 
     }
 
-    public void removeMessageFromStackDelete(String fileId){
+    public void removeMessageFromStackDelete(String fileId) {
         this.stackDeleteMessage.remove(fileId);
 
     }
 
-    public void removeChunkFromStoredChunks(String chunkID){
+    public void removeChunkFromStoredChunks(String chunkID) {
         this.storedChunks.remove(chunkID);
     }
 
@@ -616,7 +615,7 @@ public class Peer extends UnicastRemoteObject implements PeerInterface {
         return stackDeleteMessage;
     }
 
-    public void removeReceivedStoredMessage(String key){
+    public void removeReceivedStoredMessage(String key) {
         this.receivedStoredMessages.remove(key);
     }
 }

@@ -17,5 +17,4 @@ public class Constants {
     public static final String ALIVE = "ALIVE";
 
 
-
 }

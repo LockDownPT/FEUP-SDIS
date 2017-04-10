@@ -47,6 +47,7 @@ public class Delete {
 
     /**
      * This function updates the Replication Degree of the deleted file and the related chunks.
+     *
      * @param file
      */
     private void updateRepDeg(String file) {
@@ -64,10 +65,10 @@ public class Delete {
     }
 
 
-
     /**
-     *  After received tha DELETE request, the peer deletes the folder with the given fileId
-     *  and updates the Replication Degree.
+     * After received tha DELETE request, the peer deletes the folder with the given fileId
+     * and updates the Replication Degree.
+     *
      * @param fileId
      */
     public void deleteChunks(String fileId) {
@@ -83,6 +84,7 @@ public class Delete {
 
     /**
      * This function delete all the chunks of the folder and update the size of the peer.
+     *
      * @param folder
      */
     private void deleteFolder(File folder) {
@@ -119,7 +121,7 @@ public class Delete {
      * on the multicast control channel (MC) a message to announce that it's alive with the following format:
      * ALIVE <Version> <SenderId> <CRLF><CRLF>
      */
-    public void sendAliveMessage(){
+    public void sendAliveMessage() {
 
         Message request = new Message(ALIVE, peer.getVersion(), peer.getPeerId());
         Mailman messageHandler = new Mailman(request, peer);
@@ -131,6 +133,7 @@ public class Delete {
      * When a peer starts to run, it sends
      * on the multicast control channel (MC) a message to announce that it's alive with the following format:
      * ALIVE <Version> <SenderId> <CRLF><CRLF>
+     *
      * @param message
      */
     public void deliverAliveMessage(Message message) {

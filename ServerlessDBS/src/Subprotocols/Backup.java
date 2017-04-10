@@ -55,43 +55,41 @@ public class Backup {
      * it will store the chunk and send a STORED message for the sender
      */
     public void storeChunk(Message message) {
-        //if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-            long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
-            if (availableSpace > message.getBody().length) {
-                Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                if (peer.getVersion().equals("1.1")) {
-                    deliverStoredMessageEnhanced(stored);
-                } else {
-                    deliverStoredMessage(stored);
-                }
-                OutputStream output = null;
+        long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
+        if (availableSpace > message.getBody().length) {
+            Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+            if (peer.getVersion().equals("1.1")) {
+                deliverStoredMessageEnhanced(stored);
+            } else {
+                deliverStoredMessage(stored);
+            }
+            OutputStream output = null;
+            try {
+                //Creates sub folders structure -> peerId/FileId/ChunkNo
+                File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                outFile.getParentFile().mkdirs();
+                outFile.createNewFile();
+                output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                assert output != null;
+                output.write(message.getBody(), 0, message.getBody().length);
+                peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
                 try {
-                    //Creates sub folders structure -> peerId/FileId/ChunkNo
-                    File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                    outFile.getParentFile().mkdirs();
-                    outFile.createNewFile();
-                    output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
+                    peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
+                    peer.increaseReplicationDegree(message);
                     assert output != null;
-                    output.write(message.getBody(), 0, message.getBody().length);
-                    peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+                    output.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    try {
-                        peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                        peer.increaseReplicationDegree(message);
-                        assert output != null;
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
-        //}
+        }
     }
 
     /**
@@ -147,8 +145,15 @@ public class Backup {
         }
         if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
             System.out.println("Replication degree not achived");
-            if(peer.getVersion().equals("1.1")){
-                finishTask(message.getMessageHeader().getFileId()+ message.getMessageHeader().getChunkNo());
+            /*
+             * Finishes task even though the replication was not achieved
+             * because if the peer crashed we want it to repeat the task that
+             * backsup the whole file, and not the separated chunks
+             * And even if it doesn't fail, the specifications asks us to only
+             * try 5 times
+             */
+            if (peer.getVersion().equals("1.1")) {
+                finishTask(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
             }
         }
     }
@@ -211,7 +216,7 @@ public class Backup {
             System.out.println(numSplits);
             System.out.println(lastChunkSize);
 
-            for (int chunkId = 1; chunkId < numSplits ; chunkId++) {
+            for (int chunkId = 1; chunkId < numSplits; chunkId++) {
 
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);

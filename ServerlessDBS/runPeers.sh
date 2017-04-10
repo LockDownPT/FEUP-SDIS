@@ -14,6 +14,13 @@ function compile {
 	cp -r ./src/TestFiles ./bin
 }
 
+function runSnooper {
+
+	xterm -e "java -jar McastSnooper.jar 224.0.0.0:4445 224.0.0.2:4446 224.0.0.4:4447
+" &
+	
+}
+
 function startRMI {
 	
 	killall rmiregistry
@@ -35,6 +42,7 @@ if (( $# != 2 )); then
 fi
 
 compile
+runSnooper
 cd bin
 startRMI
 launchPeers $1 $2

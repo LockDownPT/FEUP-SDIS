@@ -29,10 +29,10 @@ public class Restore {
     private int numberOfChunks = 0;
     private int restoredChunks = 0;
     private String fileId;
-    /* Socket to be used in enhanced protocol (version: 1.1) */
+
+    /* Enhanced protocol variables(version: 1.1) */
     private Socket enhancedSocket;
     private ServerSocket listener;
-    /* Socket ouput for enhanced protocol (version: 1.1) */
     private OutputStream out = null;
     private DataOutputStream dos = null;
     private boolean tcpConnected = false;
@@ -65,7 +65,7 @@ public class Restore {
         do {
             try {
                 sleep(3000);
-                if(restoredChunks<numberOfChunks)
+                if (restoredChunks < numberOfChunks)
                     requestChunks();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -295,7 +295,7 @@ public class Restore {
                     saveChunk(requestMessage);
 
                 } catch (IOException e) {
-                    restore.finishedRestore=true;
+                    restore.finishedRestore = true;
                 }
             }
             try {

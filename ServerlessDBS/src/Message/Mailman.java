@@ -116,7 +116,7 @@ public class Mailman {
                     break;
                 case DELETE:
                     if (peer.getVersion().equals("1.0"))
-                    peer.getDeleteProtocol().deliverDeleteMessage(message);
+                        peer.getDeleteProtocol().deliverDeleteMessage(message);
                     else
                         peer.getDeleteProtocol().deliverDeleteMessage(message);
                     break;
@@ -148,10 +148,9 @@ public class Mailman {
                     }
                     break;
                 case STORED:
-                    if (peer.getVersion().equals("1.0")){
+                    if (peer.getVersion().equals("1.0")) {
                         peer.increaseReplicationDegree(message);
-                    }
-                    else {
+                    } else {
                         peer.increaseReplicationDegree(message);
                         peer.removeMessageFromStackDelete(message.getMessageHeader().getFileId());
                     }
@@ -167,10 +166,11 @@ public class Mailman {
                     break;
                 case DELETE:
                     if (peer.getVersion().equals("1.0"))
-                    peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
-                    else{
                         peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
-                        peer.addMessageToStackDelete(message);}
+                    else {
+                        peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
+                        peer.addMessageToStackDelete(message);
+                    }
                     break;
                 case ALIVE:
                     peer.getDeleteProtocol().resendDeleteMessage();
