@@ -55,6 +55,7 @@ public class Delete {
             if (Objects.equals(value, file)) {
                 peer.removeChunkFromStoredChunks(key);
                 peer.removeFromChunksReplicationDegree(key);
+
             }
         }
         peer.saveMetadataToDisk();
@@ -73,7 +74,7 @@ public class Delete {
 
     private void deleteFolder(File folder) {
         File[] files = folder.listFiles();
-        if (files != null) { //some JVMs return null for empty dirs
+        if (files != null) {
             for (File f : files) {
                 if (f.isDirectory()) {
                     deleteFolder(f);
