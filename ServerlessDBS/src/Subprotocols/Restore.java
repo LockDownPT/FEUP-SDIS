@@ -50,10 +50,14 @@ public class Restore {
         this.finishedRestore = false;
     }
 
+    /**
+     * This function starts the RESTORE protocol by sendig the RESTORE request and
+     * construct the restored file.
+     */
     public void start() {
 
         System.out.println("Gathering file info");
-        getFileInfo();
+        setFileInfo();
 
         if (peer.getVersion().equals("1.1")) {
             Runnable enhancedRestore = new RestoreEnhanced(this);
@@ -85,7 +89,11 @@ public class Restore {
         }
     }
 
-    private void getFileInfo() {
+
+    /**
+     * This function set the information of the file.
+     */
+    private void setFileInfo() {
         long maxSizeChunk = 64 * 1000;
         String path = "./TestFiles/" + fileName;
         File file = new File(path);
@@ -103,6 +111,9 @@ public class Restore {
         System.out.println("Number of chunks: " + this.numberOfChunks);
     }
 
+    /**
+     * This function requests from the peers all the chunks needed to construct the file.
+     */
     private void requestChunks() {
 
         int chunkNo = 0;
@@ -117,6 +128,10 @@ public class Restore {
         }
     }
 
+
+    /**
+     * This function build the file.
+     */
     private void constructFile() {
 
         FileOutputStream fop = null;
@@ -147,6 +162,7 @@ public class Restore {
             }
         }
     }
+
 
     /**
      * If the peer has the chunk and it hasn't been sent by another peer, it will send it.
@@ -179,6 +195,10 @@ public class Restore {
         }
     }
 
+
+    /**
+     * This function stores all the chunks received that are needed to restore the file.
+     */
     private void storeChunk(String chunkNo, byte[] chunk) {
         if (chunks.get(chunkNo) == null) {
             chunks.put(chunkNo, chunk);
@@ -226,6 +246,9 @@ public class Restore {
 
     }
 
+    /**
+     * This function starts the TCP connection between initiator peer and the peer that will send the chunk.
+     */
     public void connectToServerSocket(InetAddress ip, int port) {
         System.out.println("TCP ip: " + ip);
         System.out.println("TCP port: " + port);
