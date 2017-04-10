@@ -27,11 +27,21 @@ public class Tasks {
         this.pendingTasks = new Properties();
     }
 
+
+    /**
+     * This function adds a Task to file pendingTasks.
+     * @param chunkId
+     */
     public void addTask(String chunkId) {
         pendingTasks.setProperty(chunkId, chunkId);
         saveTasks();
     }
 
+    /**
+     * This function adds a Task to file pendingTasks.
+     * @param fileId
+     * @param repDeg
+     */
     public void addTask(String fileId, String repDeg) {
         System.out.println(fileId);
         System.out.println(repDeg);
@@ -40,11 +50,18 @@ public class Tasks {
         saveTasks();
     }
 
+    /**
+     * When a Task is done, this function remove it from the file pendingTasks.
+     * @param chunkId
+     */
     public void finishTask(String chunkId) {
         pendingTasks.remove(chunkId);
         saveTasks();
     }
 
+    /**
+     * This function saves all Tasks to the disk memory.
+     */
     public void saveTasks() {
 
         try {
@@ -54,6 +71,9 @@ public class Tasks {
         }
     }
 
+    /**
+     * This function loads all Tasks from the disk memory.
+     */
     public void loadTasks() {
 
         File pendingTasksFile = new File(peer.getPeerId() + "/pendingTasks.properties");
@@ -68,8 +88,11 @@ public class Tasks {
 
     }
 
-    public void finishPendingTasks() {
 
+    /**
+     * This function run all the Tasks.
+     */
+    public void finishPendingTasks() {
 
         for (String chunkId : pendingTasks.stringPropertyNames()) {
 
