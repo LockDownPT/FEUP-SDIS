@@ -4,13 +4,12 @@ package Subprotocols;
 import Message.Mailman;
 import Message.Message;
 import Peer.Peer;
+import Utilities.Tasks;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 
 import static Utilities.Constants.PUTCHUNK;
-import static Utilities.Constants.REMOVED;
 import static Utilities.Constants.STORED;
 import static Utilities.Utilities.createHash;
 
@@ -21,7 +20,14 @@ public class Backup {
     private String fileId;
     private Peer peer;
     private int numberOfChunks = 1;
+    private Tasks tasks;
 
+    /**
+     * Initiates the backup of a file
+     * @param file file to backup
+     * @param replicationDegree desired replication degree
+     * @param peer peer that calls the backup protocol
+     */
     public Backup(String file, int replicationDegree, Peer peer) {
         this.fileName = file;
         this.replicationDegree = replicationDegree;
@@ -29,56 +35,74 @@ public class Backup {
         this.peer = peer;
     }
 
+    /**
+     * Creates backup protocol
+     * @param peer peer that calls the backup protocol
+     */
     public Backup(Peer peer) {
         this.fileId = null;
         this.peer = peer;
     }
 
+    /**
+     * If in thread backup mode calls the mailman runnable that sends the chunks
+     *
+     * @param chunk chunk to be sent
+     * @param chunkNo chunk number
+     */
     public void sendChunk(byte[] chunk, int chunkNo) {
 
         Message request = new Message(PUTCHUNK, peer.getVersion(), peer.getPeerId(), fileId, Integer.toString(chunkNo), Integer.toString(replicationDegree));
         request.setBody(chunk);
-        deliverPutchunkMessage(request);
+
+        //deliverPutchunkMessage(request);
+
+        //For a threaded backup comment previous statement and uncomment next 2 sentences
+
+
+        Mailman m = new Mailman(request, peer);
+        m.startMailmanThread();
+
 
     }
-
 
     /**
      * If the peer doesn't have the chunk and it has enough space,
      * it will store the chunk and send a STORED message for the sender
      */
     public void storeChunk(Message message) {
-        if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
-            long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
-            if (availableSpace > message.getBody().length) {
-                OutputStream output = null;
+        long availableSpace = peer.getStorageSpace() - peer.getUsedSpace();
+        if (availableSpace > message.getBody().length) {
+            Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+            if (peer.getVersion().equals("1.1")) {
+                deliverStoredMessageEnhanced(stored);
+            } else {
+                deliverStoredMessage(stored);
+            }
+            OutputStream output = null;
+            try {
+                //Creates sub folders structure -> peerId/FileId/ChunkNo
+                File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+                outFile.getParentFile().mkdirs();
+                outFile.createNewFile();
+                output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                assert output != null;
+                output.write(message.getBody(), 0, message.getBody().length);
+                peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
                 try {
-                    //Creates sub folders structure -> peerId/FileId/ChunkNo
-                    File outFile = new File(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                    outFile.getParentFile().mkdirs();
-                    outFile.createNewFile();
-                    output = new FileOutputStream(peer.getPeerId() + "/" + message.getMessageHeader().getFileId() + "/" + message.getMessageHeader().getChunkNo());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
+                    peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
+                    peer.increaseReplicationDegree(message);
                     assert output != null;
-                    System.out.println("BODY SIZE: " + message.getBody().length);
-                    output.write(message.getBody(), 0, message.getBody().length);
-                    peer.setUsedSpace(peer.getUsedSpace() + message.getBody().length);
+                    output.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    try {
-                        peer.addChunkToRegistry(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo(), message.getMessageHeader().getReplicationDeg());
-                        peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        Message stored = new Message(STORED, peer.getVersion(), peer.getPeerId(), message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-                        deliverStoredMessage(stored);
-                        assert output != null;
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         }
@@ -89,15 +113,17 @@ public class Backup {
      * If the replication degree of the chunk is already achieved it doesn't store it
      */
     public void storeChunkEnhanced(Message message) {
-        try {
-            Thread.sleep((long) (Math.random() * 1000));
-            int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
-            int currentRepDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
-            if (currentRepDeg < desiredRepDeg) {
-                storeChunk(message);
+        if (!peer.hasChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo())) {
+            try {
+                Thread.sleep((long) (Math.random() * 1500));
+                int desiredRepDeg = Integer.parseInt(message.getMessageHeader().getReplicationDeg());
+                int currentRepDeg = peer.getReplicationDegreeOfChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                if (currentRepDeg < desiredRepDeg) {
+                    storeChunk(message);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -109,6 +135,10 @@ public class Backup {
      * has been accomplished. Otherwise it resends the PUTCHUNK request, a maximum of 5 times.
      */
     public void deliverPutchunkMessage(Message message) {
+
+        if (peer.getVersion().equals("1.1")) {
+            createTask(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
+        }
 
         Mailman mailman = new Mailman(message, peer.getMdb_ip(), peer.getMdb_port(), PUTCHUNK, peer);
         mailman.startMailmanThread();
@@ -131,6 +161,16 @@ public class Backup {
         }
         if (numberOfTries == 5 && repDeg < Integer.parseInt(message.getMessageHeader().getReplicationDeg())) {
             System.out.println("Replication degree not achived");
+            /*
+             * Finishes task even though the replication was not achieved
+             * because if the peer crashed we want it to repeat the task that
+             * backsup the whole file, and not the separated chunks
+             * And even if it doesn't fail, the specifications asks us to only
+             * try 5 times
+             */
+            if (peer.getVersion().equals("1.1")) {
+                finishTask(message.getMessageHeader().getFileId() + message.getMessageHeader().getChunkNo());
+            }
         }
     }
 
@@ -164,17 +204,27 @@ public class Backup {
 
     }
 
+    /**
+     * Reads a file, and splits it in chunks
+     * Then calls the send chunk function for each chunk
+     * Also adds the file to the pending tasks and removes once finished
+     */
     public void readChunks() {
-        int chunkNo = 1;
+        int chunkNo = 0;
+
         try {
             long maxSizeChunk = 64 * 1000;
             //String path = "./TestFiles/" + fileName; linux
             String path = "./" + "TestFiles/" + fileName; // windows
             File file = new File(path);
 
+
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             this.fileId = createHash(fileName + sdf.format(file.lastModified()));
+
+            if (peer.getVersion().equals("1.1"))
+                createTask(fileId, Integer.toString(replicationDegree) + "-" + fileName);
 
             RandomAccessFile fileRaf = new RandomAccessFile(file, "r");
             long fileLength = fileRaf.length();
@@ -192,10 +242,11 @@ public class Backup {
                 byte[] buf = new byte[(int) maxSizeChunk];
                 int val = fileRaf.read(buf);
                 if (val != -1) {
-                    sendChunk(buf, chunkId);
+                    sendChunk(buf, chunkNo);
                 }
                 chunkNo++;
                 this.numberOfChunks++;
+
             }
             if (lastChunkSize >= 0) {
 
@@ -203,7 +254,7 @@ public class Backup {
                 int val = fileRaf.read(buf);
                 if (val != -1) {
                     System.out.println("LASTCHUNK Size: " + lastChunkSize);
-                    System.out.println("BUF length: "+ buf.length);
+                    System.out.println("BUF length: " + buf.length);
                     sendChunk(buf, chunkNo);
                 }
                 this.numberOfChunks++;
@@ -214,6 +265,10 @@ public class Backup {
             System.out.println("IOException:");
             e.printStackTrace();
         }
+
+        if (peer.getVersion().equals("1.1"))
+            finishTask(fileId);
+
     }
 
     public String getFileName() {
@@ -224,8 +279,16 @@ public class Backup {
         return replicationDegree;
     }
 
+    public void setReplicationDegree(int repDeg) {
+        this.replicationDegree = repDeg;
+    }
+
     public String getFileId() {
         return fileId;
+    }
+
+    public void setFileId(String id) {
+        this.fileId = id;
     }
 
     public Peer getPeer() {
@@ -236,5 +299,40 @@ public class Backup {
         return numberOfChunks;
     }
 
+    public void createTask(String chunkId) {
+        tasks.addTask(chunkId);
+    }
+
+    public void createTask(String fileId, String repDeg) {
+        System.out.println(fileId);
+        System.out.println(repDeg);
+        tasks.addTask(fileId, repDeg);
+    }
+
+    /**
+     * Sets a task as done
+     * @param chunkId fileId + chunkNo
+     */
+    public void finishTask(String chunkId) {
+        tasks.finishTask(chunkId);
+    }
+
+    /**
+     * Finishes all pending tasks
+     */
+    public void finishPendingTasks() {
+
+        tasks = new Tasks(peer);
+
+        //loads pending tasks from disk
+        tasks.loadTasks();
+
+        //finishes pending tasks
+        tasks.finishPendingTasks();
+    }
+
+    public void setFileName(String s) {
+        fileName=s;
+    }
 }
 

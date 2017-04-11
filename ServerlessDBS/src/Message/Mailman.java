@@ -19,7 +19,13 @@ public class Mailman {
     private String messageType;
     private String type;
 
-
+    /**
+     * Object in charge of receiving datagram packet and creating the corresponding message
+     * and send it to the right handler.
+     *
+     * @param message received datagram packet
+     * @param creator peer that received the packet
+     */
     public Mailman(DatagramPacket message, Peer creator) {
         this.message = new Message(message);
         this.mailman = new ReceiverThread();
@@ -27,6 +33,12 @@ public class Mailman {
         this.peer = creator;
     }
 
+    /**
+     * Receives a message the is going to be sent and handles it accordingly to the message type
+     *
+     * @param message message to be sent
+     * @param creator peer that is sending the message
+     */
     public Mailman(Message message, Peer creator) {
         this.message = message;
         this.mailman = new SenderThread();
@@ -34,6 +46,15 @@ public class Mailman {
         this.peer = creator;
     }
 
+    /**
+     * Mailman that actually send the message to the multicast
+     *
+     * @param message message to be sent to the multicast
+     * @param addr multicast address
+     * @param port multicast port
+     * @param messageType message type
+     * @param peer peer that is sending the message
+     */
     public Mailman(Message message, String addr, int port, String messageType, Peer peer) {
         this.message = message;
         this.addr = addr;
@@ -45,7 +66,10 @@ public class Mailman {
     }
 
     /**
-     * Starts thread
+     * Starts mailman thread based on type
+     * This way there is a pool thread for sending and receiving messages
+     * allowing them to not enter in deadlock if message incoming rate
+     * is bigger than outgoing
      */
     public void startMailmanThread() {
         switch (type) {
@@ -90,12 +114,18 @@ public class Mailman {
         }
     }
 
+    /**
+     * Thread that delivers any message to a given multicast
+     */
     public class DeliverMessageThread implements Runnable {
         public void run() {
             deliverMessage(message, addr, port, messageType);
         }
     }
 
+    /**
+     * Thread in charge of sending messages base on type
+     */
     public class SenderThread implements Runnable {
         public void run() {
             System.out.println("Sended request:" + message.getMessageHeader().getMessageType());
@@ -104,9 +134,9 @@ public class Mailman {
                     peer.getBackup().deliverPutchunkMessage(message);
                     break;
                 case STORED:
-                    if (peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0")) {
                         peer.getBackup().deliverStoredMessage(message);
-                    else {
+                    } else {
                         peer.getBackup().deliverStoredMessageEnhanced(message);
                         System.out.print("Enhanced BACKUP");
                     }
@@ -115,10 +145,16 @@ public class Mailman {
                     peer.getRestoreProtocol().deliverGetchunkMessage(message);
                     break;
                 case DELETE:
-                    peer.getDeleteProtocol().deliverDeleteMessage(message);
+                    if (peer.getVersion().equals("1.0"))
+                        peer.getDeleteProtocol().deliverDeleteMessage(message);
+                    else
+                        peer.getDeleteProtocol().deliverDeleteMessage(message);
                     break;
                 case REMOVED:
                     peer.getSpaceReclaimProtocol().deliverRemovedMessage(message);
+                    break;
+                case ALIVE:
+                    peer.getDeleteProtocol().deliverAliveMessage(message);
                     break;
                 default:
                     break;
@@ -127,6 +163,9 @@ public class Mailman {
 
     }
 
+    /**
+     * Handles received requestes
+     */
     public class ReceiverThread implements Runnable {
         public void run() {
             //Ignores requests sent by itself
@@ -135,14 +174,19 @@ public class Mailman {
             switch (message.getMessageHeader().getMessageType()) {
                 case PUTCHUNK:
                     peer.getSpaceReclaimProtocol().increaseReceivedPUTCHUNK(message);
-                    if (peer.getVersion().equals("1.0"))
+                    if (peer.getVersion().equals("1.0")) {
                         peer.getBackup().storeChunk(message);
-                    else{
+                    } else {
                         peer.getBackup().storeChunkEnhanced(message);
                     }
                     break;
                 case STORED:
-                    peer.increaseReplicationDegree(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
+                    if (peer.getVersion().equals("1.0")) {
+                        peer.increaseReplicationDegree(message);
+                    } else {
+                        peer.increaseReplicationDegree(message);
+                        peer.removeMessageFromStackDelete(message.getMessageHeader().getFileId());
+                    }
                     break;
                 case GETCHUNK:
                     peer.getRestoreProtocol().sendChunk(message);
@@ -154,7 +198,15 @@ public class Mailman {
                     peer.getSpaceReclaimProtocol().updateChunkRepDegree(message);
                     break;
                 case DELETE:
-                    peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
+                    if (peer.getVersion().equals("1.0"))
+                        peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
+                    else {
+                        peer.getDeleteProtocol().deleteChunks(message.getMessageHeader().getFileId());
+                        peer.addMessageToStackDelete(message);
+                    }
+                    break;
+                case ALIVE:
+                    peer.getDeleteProtocol().resendDeleteMessage();
                     break;
                 default:
                     break;

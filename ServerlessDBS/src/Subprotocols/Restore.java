@@ -29,32 +29,38 @@ public class Restore {
     private int numberOfChunks = 0;
     private int restoredChunks = 0;
     private String fileId;
-    /* Socket to be used in enhanced protocol (version: 1.1) */
+
+    /* Enhanced protocol variables(version: 1.1) */
     private Socket enhancedSocket;
     private ServerSocket listener;
-    /* Socket ouput for enhanced protocol (version: 1.1) */
     private OutputStream out = null;
     private DataOutputStream dos = null;
     private boolean tcpConnected = false;
+    private boolean finishedRestore;
 
     public Restore(String file, Peer peer) {
 
         fileName = file;
         this.peer = peer;
-
+        this.finishedRestore = false;
     }
 
     public Restore(Peer peer) {
         this.peer = peer;
+        this.finishedRestore = false;
     }
 
+    /**
+     * This function starts the RESTORE protocol by sendig the RESTORE request and
+     * construct the restored file.
+     */
     public void start() {
 
         System.out.println("Gathering file info");
-        getFileInfo();
+        setFileInfo();
 
         if (peer.getVersion().equals("1.1")) {
-            Runnable enhancedRestore = new RestoreEnhanced();
+            Runnable enhancedRestore = new RestoreEnhanced(this);
             peer.getDeliverExecutor().submit(enhancedRestore);
         }
 
@@ -62,8 +68,9 @@ public class Restore {
         requestChunks();
         do {
             try {
-                sleep(500);
-                System.out.print(".");
+                sleep(3000);
+                if (restoredChunks < numberOfChunks)
+                    requestChunks();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -73,10 +80,20 @@ public class Restore {
         System.out.println("Constructing File");
         constructFile();
         System.out.println("Finished Restore");
-
+        if (peer.getVersion().equals("1.1")) {
+            try {
+                listener.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void getFileInfo() {
+
+    /**
+     * This function set the information of the file.
+     */
+    private void setFileInfo() {
         long maxSizeChunk = 64 * 1000;
         String path = "./TestFiles/" + fileName;
         File file = new File(path);
@@ -94,11 +111,14 @@ public class Restore {
         System.out.println("Number of chunks: " + this.numberOfChunks);
     }
 
+    /**
+     * This function requests from the peers all the chunks needed to construct the file.
+     */
     private void requestChunks() {
 
-        int chunkNo = 1;
+        int chunkNo = 0;
 
-        while (chunkNo <= numberOfChunks) {
+        while (chunkNo < numberOfChunks) {
             Message request = new Message(GETCHUNK, peer.getVersion(), peer.getPeerId(), this.fileId, Integer.toString(chunkNo));
 
             Mailman messageHandler = new Mailman(request, peer);
@@ -108,6 +128,10 @@ public class Restore {
         }
     }
 
+
+    /**
+     * This function build the file.
+     */
     private void constructFile() {
 
         FileOutputStream fop = null;
@@ -118,7 +142,7 @@ public class Restore {
             dir.mkdir();
             file = new File("./" + peer.getPeerId() + "/Restored Files/" + fileName);
             fop = new FileOutputStream(file, true);
-            for (int i = 1; i <= chunks.size(); i++) {
+            for (int i = 0; i < chunks.size(); i++) {
                 System.out.println((chunks.get(Integer.toString(i))).length);
                 fop.write(chunks.get(Integer.toString(i)));
             }
@@ -139,6 +163,7 @@ public class Restore {
         }
     }
 
+
     /**
      * If the peer has the chunk and it hasn't been sent by another peer, it will send it.
      */
@@ -154,6 +179,7 @@ public class Restore {
                     chunk.setBody(peer.getChunk(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo()));
                     deliverChunkMessage(chunk, message);
                 }
+                peer.removeChunkFromSentChunks(message.getMessageHeader().getFileId(), message.getMessageHeader().getChunkNo());
             }
         }
     }
@@ -169,6 +195,10 @@ public class Restore {
         }
     }
 
+
+    /**
+     * This function stores all the chunks received that are needed to restore the file.
+     */
     private void storeChunk(String chunkNo, byte[] chunk) {
         if (chunks.get(chunkNo) == null) {
             chunks.put(chunkNo, chunk);
@@ -193,20 +223,20 @@ public class Restore {
     public void deliverChunkMessage(Message newMessage, Message request) {
         if (request.getMessageHeader().getVersion().equals("1.1") && peer.getVersion().equals("1.1")) {
 
-            if(!tcpConnected){
-                connectToServerSocket(request.getPacketIP(),peer.getMdr_port());
+            if (!tcpConnected) {
+                connectToServerSocket(request.getPacketIP(), peer.getMdr_port());
                 tcpConnected = true;
             }
 
             try {
-                while(enhancedSocket.getInputStream().available()!=0){
+                while (enhancedSocket.getInputStream().available() != 0) {
                     System.out.println("Waiting for socket to be empty");
                 }
                 dos.writeInt(newMessage.getMessageBytes(CHUNK).length);
                 dos.write(newMessage.getMessageBytes(CHUNK));
                 System.out.println("SENT CHUNK " + request.getMessageHeader().getChunkNo());
             } catch (IOException e) {
-                e.printStackTrace();
+                connectToServerSocket(request.getPacketIP(), peer.getMdr_port());
             }
         } else {
             Mailman mailman = new Mailman(newMessage, peer.getMdr_ip(), peer.getMdr_port(), CHUNK, peer);
@@ -216,11 +246,14 @@ public class Restore {
 
     }
 
+    /**
+     * This function starts the TCP connection between initiator peer and the peer that will send the chunk.
+     */
     public void connectToServerSocket(InetAddress ip, int port) {
         System.out.println("TCP ip: " + ip);
         System.out.println("TCP port: " + port);
         try {
-            enhancedSocket = new Socket(ip,port);
+            enhancedSocket = new Socket(ip, port);
             out = enhancedSocket.getOutputStream();
             dos = new DataOutputStream(out);
         } catch (IOException e) {
@@ -230,18 +263,29 @@ public class Restore {
 
     public class RestoreEnhanced implements Runnable {
 
+        private Restore restore;
+
+        public RestoreEnhanced(Restore restore) {
+            this.restore = restore;
+        }
+
         public void run() {
             System.out.println("Connecting to socket");
             try {
                 listener = new ServerSocket(peer.getMdr_port());
                 System.out.println("Connected to socket");
                 while (true) {
-                    Runnable requestHandler = new RequestHandler(listener.accept());
+                    Runnable requestHandler = new RequestHandler(listener.accept(), restore);
                     peer.getDeliverExecutor().submit(requestHandler);
                     System.out.println("RECEIVED CHUNK");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                try {
+                    listener.close();
+                    tcpConnected = false;
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
 
         }
@@ -250,14 +294,16 @@ public class Restore {
     public class RequestHandler implements Runnable {
 
         private Socket socket;
+        private Restore restore;
 
-        public RequestHandler(Socket socket) {
+        public RequestHandler(Socket socket, Restore restore) {
             this.socket = socket;
+            this.restore = restore;
         }
 
         public void run() {
             System.out.println("REQUEST HANDLER STARTED");
-            while(true){
+            while (!restore.finishedRestore) {
                 try {
                     InputStream in = socket.getInputStream();
                     DataInputStream dis = new DataInputStream(in);
@@ -272,8 +318,14 @@ public class Restore {
                     saveChunk(requestMessage);
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    restore.finishedRestore = true;
                 }
+            }
+            try {
+                socket.close();
+                System.out.println("CLOSED SOCKET");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
