@@ -3,7 +3,6 @@
 
 function launchTCA {
 
-	echo "asdasDAsda"
 	xterm -e "java TestingClientApplication.TCA "$1" "$2" "$3" "$4"" & $SHELL &
 
 }
