@@ -34,8 +34,6 @@ public class SSLClient {
         oper =args[2];
         plate_number=args[3];
 
-        sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-
         validatePlate();
 
         if(oper.equals("REGISTER")){
@@ -54,8 +52,7 @@ public class SSLClient {
             }
         }
         try {
-            clientSocket = (SSLSocket) sf.createSocket(host_name,port_number);
-            System.out.println(cypher_suite[0]);
+            clientSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host_name,port_number);
             clientSocket.setEnabledCipherSuites(cypher_suite);
         }
         catch( IOException e) {

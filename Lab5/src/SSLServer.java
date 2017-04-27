@@ -25,6 +25,7 @@ public class SSLServer {
     SSLServer(String [] args) throws IOException {
 
         license_plates = new HashMap<>();
+        listener.setNeedClientAuth(true);  // s is an SSLServerSocket
 
         port_number=Integer.parseInt(args[0]);
 
@@ -33,12 +34,9 @@ public class SSLServer {
             cypher_suite[i-1]=args[i];
         }
 
-        ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-
         try {
-            listener = (SSLServerSocket) ssf.createServerSocket(port_number);
+            listener = (SSLServerSocket) SSLServerSocketFactory.getDefault().createServerSocket(port_number);
             // Require client authentication
-            //listener.setNeedClientAuth(true);  // s is an SSLServerSocket
             listener.setEnabledCipherSuites(cypher_suite);
         }
         catch( IOException e) {
