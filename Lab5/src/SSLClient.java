@@ -44,18 +44,18 @@ public class SSLClient {
 
             cypher_suite = new String[args.length-1];
             for(int i = 5;i<args.length;i++) {
-                cypher_suite[i]=args[i];
+                cypher_suite[i-5]=args[i];
             }
         }else{
             data="LOOKUP " + plate_number;
             cypher_suite = new String[args.length-1];
             for(int i = 4;i<args.length;i++) {
-                cypher_suite[i]=args[i];
+                cypher_suite[i-4]=args[i];
             }
         }
-
         try {
             clientSocket = (SSLSocket) sf.createSocket(host_name,port_number);
+            System.out.println(cypher_suite[0]);
             clientSocket.setEnabledCipherSuites(cypher_suite);
         }
         catch( IOException e) {
@@ -95,10 +95,10 @@ public class SSLClient {
 
     public static void main(String[] args) throws IOException {
 
-        if (!(args.length == 4 || args.length == 5)) {
+        /*if (!(args.length == 4 || args.length == 5)) {
             System.out.println("Usage: java Echo <hostname> <port_number> <oper> <opnd>");
             return;
-        }
+        }*/
 
         SSLClient SSLClient = new SSLClient(args);
 

@@ -30,38 +30,40 @@ public class SSLServer {
 
         cypher_suite = new String[args.length-1];
         for(int i = 1;i<args.length;i++) {
-            cypher_suite[i]=args[i];
+            cypher_suite[i-1]=args[i];
         }
 
         ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 
         try {
             listener = (SSLServerSocket) ssf.createServerSocket(port_number);
+            // Require client authentication
+            //listener.setNeedClientAuth(true);  // s is an SSLServerSocket
             listener.setEnabledCipherSuites(cypher_suite);
         }
         catch( IOException e) {
-            System.out.println("Server - Failed to create SSLServerSocket");
-            e.getMessage();
+            e.printStackTrace();
             return;
         }
     }
 
-    public void run() throws IOException{
+    public void run() {
         try{
             while(true){
-                new ServerThread((SSLSocket)listener.accept(), clientNumber++, license_plates).start();
+                new ServerThread(listener.accept(), clientNumber++, license_plates).start();
             }
-        } finally {
-            listener.close();
+        }catch (IOException e){
+            try {
+                listener.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
+
+
     }
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: java Echo <port_number>");
-            return;
-        }
-
         SSLServer SSLServer = new SSLServer(args);
         SSLServer.run();
     }
