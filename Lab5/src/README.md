@@ -12,11 +12,14 @@ $java -Djavax.net.ssl.trustStore=truststore -Djavax.net.ssl.trustStorePassword=1
 
 ```
 On the second terminal run:
+
 ```
 $javac SSLClient.java
 $java -Djavax.net.ssl.keyStore=client.keys -Djavax.net.ssl.keyStorePassword=123456 -Djavax.net.ssl.trustStore=truststore -Djavax.net.ssl.trustStorePassword=123456 SSLClient localhost 4445 REGISTER 11-AA-11 Condutor TLS_RSA_WITH_AES_128_CBC_SHA
 $java -Djavax.net.ssl.trustStore=/home/pedroc/Documents/FEUP-SDIS/Lab5/src/truststore -Djavax.net.ssl.trustStorePassword=123456 SSLClient localhost 4445 LOOKUP 11-AA-11 TLS_RSA_WITH_AES_128_CBC_SHA
+
 ```
+
 #### Documentation
 * [GUIDE](https://web.fe.up.pt/~pfs/aulas/sd2016/labs/lab3.html)
 * [Java (and C) APIs for TCP communication](https://web.fe.up.pt/~pfs/aulas/sd2016/labs/7tcp.pdf)
