@@ -6,14 +6,14 @@ Open two terminals inside the src folder.
 On the first terminal run:
 ```
 $javac SSLServer.java
-$java -Djavax.net.ssl.trustStore=/home/pedroc/Documents/FEUP-SDIS/Lab5/src/truststore -Djavax.net.ssl.trustStorePassword=123456 -Djavax.net.ssl.keyStore=/home/pedroc/Documents/FEUP-SDIS/Lab5/src/server.keys -Djavax.net.ssl.keyStorePassword=123456 SSLServer 4445 TLS_RSA_WITH_AES_128_CBC_SHA```
+$java -Djavax.net.ssl.trustStore=/htruststore -Djavax.net.ssl.truStorePassword=123456 -Djavax.net.ssl.keyStore=server.keys -Djavax.net.ssl.keyStorePassword=123456 SSLServer 4445 TLS_RSA_WITH_AES_128_CBC_SHA```
 
 
 ```
 On the second terminal run:
 ```
 $javac SSLClient.java
-$java -Djavax.net.ssl.keyStore=/home/pedroc/Documents/FEUP-SDIS/Lab5/src/client.keys -Djavax.net.ssl.keyStorePassword=123456 -Djavax.net.ssl.trustStore=/home/pedroc/Documents/FEUP-SDIS/Lab5/src/truststore -Djavax.net.ssl.trustStorePassword=123456 SSLClient localhost 4445 REGISTER 11-AA-11 Condutor TLS_RSA_WITH_AES_128_CBC_SHA
+$java -Djavax.net.ssl.keyStore=client.keys -Djavax.net.ssl.keyStorePassword=123456 -Djavax.net.ssl.trustStore=truststore -Djavax.net.ssl.trustStorePassword=123456 SSLClient localhost 4445 REGISTER 11-AA-11 Condutor TLS_RSA_WITH_AES_128_CBC_SHA
 $java -Djavax.net.ssl.trustStore=/home/pedroc/Documents/FEUP-SDIS/Lab5/src/truststore -Djavax.net.ssl.trustStorePassword=123456 SSLClient localhost 4445 LOOKUP 11-AA-11 TLS_RSA_WITH_AES_128_CBC_SHA
 ```
 #### Documentation
