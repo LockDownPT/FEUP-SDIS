@@ -1,3 +1,4 @@
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedReader;
@@ -13,7 +14,7 @@ import static java.lang.Thread.sleep;
  */
 public class SSLClient {
 
-    private String host_name;
+    private InetAddress host_name;
     private int port_number;
     private String oper;
     private String plate_number;
@@ -29,7 +30,7 @@ public class SSLClient {
 
     SSLClient(String [] args) throws IOException {
 
-        host_name=args[0];
+        host_name=InetAddress.getByName(args[0]);
         port_number=Integer.parseInt(args[1]);
         oper =args[2];
         plate_number=args[3];
@@ -51,14 +52,16 @@ public class SSLClient {
                 cypher_suite[i-4]=args[i];
             }
         }
+        sf= (SSLSocketFactory) SSLSocketFactory.getDefault();
+
         try {
+            System.out.println(cypher_suite[0]);
             clientSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host_name,port_number);
-            clientSocket.setEnabledCipherSuites(cypher_suite);
+            clientSocket.setEnabledCipherSuites(sf.getSupportedCipherSuites());
+
         }
         catch( IOException e) {
             System.out.println("Server - Failed to create SSLServerSocket");
-            e.getMessage();
-            return;
         }
 
     }

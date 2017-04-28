@@ -25,30 +25,30 @@ public class SSLServer {
     SSLServer(String [] args) throws IOException {
 
         license_plates = new HashMap<>();
-        listener.setNeedClientAuth(true);  // s is an SSLServerSocket
 
         port_number=Integer.parseInt(args[0]);
+        
 
         cypher_suite = new String[args.length-1];
         for(int i = 1;i<args.length;i++) {
             cypher_suite[i-1]=args[i];
         }
-
+        ssf= (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
         try {
-            listener = (SSLServerSocket) SSLServerSocketFactory.getDefault().createServerSocket(port_number);
+            listener = (SSLServerSocket) ssf.createServerSocket(port_number);
             // Require client authentication
-            listener.setEnabledCipherSuites(cypher_suite);
+            listener.setNeedClientAuth(true);  // s is an SSLServerSocket
+            listener.setEnabledCipherSuites(ssf.getSupportedCipherSuites());
         }
         catch( IOException e) {
             e.printStackTrace();
-            return;
         }
     }
 
     public void run() {
         try{
             while(true){
-                new ServerThread(listener.accept(), clientNumber++, license_plates).start();
+                new ServerThread((SSLSocket)listener.accept(), clientNumber++, license_plates).start();
             }
         }catch (IOException e){
             try {
@@ -69,11 +69,12 @@ public class SSLServer {
 
     public static class ServerThread extends Thread{
 
-        private Socket socket;
+        private SSLSocket socket;
         private int clientNumber;
         private HashMap<String, String> license_plates;
 
-        public ServerThread(Socket socket, int clientNumber, HashMap<String, String> license_plates){
+        public ServerThread(SSLSocket socket, int clientNumber, HashMap<String, String> license_plates){
+            
             this.socket = socket;
             this.clientNumber = clientNumber;
             this.license_plates = license_plates;
